@@ -1,8 +1,7 @@
-'use strict';
 
+// Check if popup as said to start RO creation
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.cmd === 'CREATE RO') {
-		const message = "Message, received. Starting RO creation";
 
 		// Log message coming from the `request` parameter
 		const data = request.payload.message;
@@ -49,7 +48,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						{
 							"@id": "output-data.jsonld"
 						}
-					]
+					],
+					"author": {
+						"@id": user_id
+					}
 				},
 				{
 					"@id": "ro-crate-metadata.json",
@@ -68,7 +70,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						"@id": user_id
 					},
 					"encodingFormat": "application/json",
-					"name": "ranking snapshot"
+					"name": "result data"
+				},
+				{
+					"@id": "ranking-snapshot.png",
+					"@type": "File",
+					"author": {
+						"@id": user_id
+					},
+					"encodingFormat": "image/png",
+					"name": "screenshot"
 				},
 				user
 			]
@@ -76,7 +87,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 		// Send response to popup script
 		sendResponse({
-			content: RC
+			response: "RO created",
+			payload: {
+				content: RC
+			}
 		});
 
 		// create File variable for gathered data
@@ -118,6 +132,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		})
 			.then((response) => response.json())
 			.then((data) => {
+
 				// Get the deposit ID from the response
 				const depositId = data.id;
 
@@ -159,6 +174,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						console.error("Error uploading file:", error);
 					});
 
+				// Tell contentScript to take a screenshot and upload on Zenodo
 				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 					chrome.tabs.sendMessage(tabs[0].id, {
 						message: "SCREENSHOT",
@@ -168,13 +184,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						}
 					});
 				});
-				//chrome.runtime.sendMessage({
-				//	message: "SCREENSHOT",
-				//	payload: {
-				//		token: ACCESS_TOKEN,
-				//		depositId: depositId
-				//	} 
-				//});
+
+
+				// send to popup the DOI
+				chrome.runtime.sendMessage({
+					message: "DEPOSIT DOI",
+					payload: {
+						//depositDOI: data.doi,
+						depositDOI: "10.5281/zenodo.7796232"
+					}
+				})
+				
 			})
 			.catch((error) => {
 				console.error("Error creating deposit:", error);

@@ -3,9 +3,10 @@ import html2canvas from "html2canvas";
 let data;
 const vocab = "http://example.com#";
 
+// Listener from popup to start gathering data
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
-		if (request.message === "start") {
+		if (request.message === "START") {
 			const someData = getData();
 
 			//sendResponse({ data: someData, image: pageScreenshot });
@@ -14,6 +15,7 @@ chrome.runtime.onMessage.addListener(
 	}
 );
 
+// Listener from background to take screenshot
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
 		if (request.message === "SCREENSHOT") {
@@ -34,7 +36,7 @@ function getFullScreen(ACCESS_TOKEN, depositId) {
 
 			const formData = new FormData();
 
-			// Upload the data file to the the deposit
+			// Upload the screenshot file to the the deposit
 			formData.append("file", imgFile);
 
 			fetch(`https://zenodo.org/api/deposit/depositions/${depositId}/files`, {
