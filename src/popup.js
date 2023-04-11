@@ -102,13 +102,33 @@ document.addEventListener("DOMContentLoaded", function (event) {
 				});
 			});
 
+			// receive deposit content from background script
 			chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 				if (request.message === "DEPOSIT DOI") {
+					const depositDOI = request.payload.depositDOI;
+					const creators = request.payload.creators;
+					const title = request.payload.title;
+					const publication_date = request.payload.publication_date;
+					const publisher = request.payload.publisher;
+					const version = request.payload.version;
+
+					const citation = creators + ". " + title + " " + publication_date + ". " + publisher +
+						". (Version " + version + "). " + depositDOI;
+
+					// create the citation in the popup
+					const citationDiv = document.createElement("div");
+					citationDiv.className = "citation";
+					const citationAnchor = document.createElement("a");
+					citationAnchor.href = "https://zenodo.org/record/" + depositDOI.split(".")[2];
+					citationAnchor.innerHTML = citation;
+					citationAnchor.target = "_blank";
+					citationDiv.appendChild(citationAnchor);
+
+					document.getElementById("content").appendChild(citationDiv);
 					
+
 				}
-			})
-
-
+			});
 
 		}
 		else {

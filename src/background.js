@@ -175,6 +175,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					});
 
 				// Tell contentScript to take a screenshot and upload on Zenodo
+				// Warning: do not open the inspection tool when running
 				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 					chrome.tabs.sendMessage(tabs[0].id, {
 						message: "SCREENSHOT",
@@ -191,7 +192,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					message: "DEPOSIT DOI",
 					payload: {
 						//depositDOI: data.doi,
-						depositDOI: "10.5281/zenodo.7796232"
+						//creators: data.metadata.creators,
+						//title: data.metadata.title,
+						//publication_date: data.metadata.publication_date,
+						//publisher: "Zenodo",
+						//version: data.metadata.version
+						depositDOI: "10.5281/zenodo.7796232",
+						creators: "Carbon, Seth, & Mungall, Chris",
+						title: " Gene Ontology Data Archive [Data set]",
+						publication_date: "2023-04-01",
+						publisher: "Zenodo",
+						version: "1.0"
 					}
 				})
 				

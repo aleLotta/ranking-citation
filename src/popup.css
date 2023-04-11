@@ -2,3 +2,7 @@
   max-width: 300px;
   width: max-content;
 }
+
+.citation {
+  background-color: lightgrey ;
+}

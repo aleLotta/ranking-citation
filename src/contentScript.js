@@ -7,6 +7,7 @@ const vocab = "http://example.com#";
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
 		if (request.message === "START") {
+			console.log("Capturing Data");
 			const someData = getData();
 
 			//sendResponse({ data: someData, image: pageScreenshot });
@@ -19,6 +20,7 @@ chrome.runtime.onMessage.addListener(
 chrome.runtime.onMessage.addListener(
 	function (request, sender, sendResponse) {
 		if (request.message === "SCREENSHOT") {
+			console.log("Taking Screenshot");
 			getFullScreen(request.payload.token, request.payload.depositId);
 		}
 	}
