@@ -3,7 +3,6 @@
 import './popup.css';
 
 document.addEventListener("DOMContentLoaded", function (event) {
-
 	// implement the fact that this is returned if the page is not the correct URL
 	// I can use a message from the content-script
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -113,33 +112,79 @@ document.addEventListener("DOMContentLoaded", function (event) {
 					const version = request.payload.version;
 
 					const citation = creators + ". " + title + " " + publication_date + ". " + publisher +
-						". (Version " + version + "). " + depositDOI;
+						". (Version " + version + "). ";
 
-					// create the citation in the popup
-					const citationDiv = document.createElement("div");
-					citationDiv.className = "citation";
-					const citationAnchor = document.createElement("a");
-					citationAnchor.href = "https://zenodo.org/record/" + depositDOI.split(".")[2];
-					citationAnchor.innerHTML = citation;
-					citationAnchor.target = "_blank";
-					citationDiv.appendChild(citationAnchor);
+					chrome.storage.local.set({ [depositDOI]: citation }).then(() => {
+						console.log("Value is set to " + citation);
+					});
 
-					document.getElementById("content").appendChild(citationDiv);
-					
+					updateCitations(depositDOI);
 
 				}
 			});
 
+			//chrome.storage.local.clear(function () {
+			//	var error = chrome.runtime.lastError;
+			//	if (error) {
+			//		console.error(error);
+			//	}
+			//	// do something more
+			//});
+
 		}
 		else {
 			const notAvailable = document.createElement('p');
-			notAvailable.style = 'color: red';
+			notAvailable.id = "warningPara";
 			notAvailable.innerHTML = 'Citation is not available in this page';
 			document.getElementById('content').appendChild(notAvailable);
 		}
 
+		document.getElementById("content").appendChild(document.createElement("hr"));
+		const citHeading = document.createElement("h3");
+		citHeading.id = "citHeading";
+		citHeading.innerHTML = "Your Citations";
+		document.getElementById("content").appendChild(citHeading);
+		chrome.storage.local.get(null, function (items) {
+			var allKeys = Object.keys(items);
+			for (var i = 0; i < allKeys.length; i++) {
+				var key = allKeys[i];
+				updateCitations(key);
+			}
+		});
 	});
 
 });
+
+function updateCitations(key) {
+	chrome.storage.local.get([key]).then((result) => {
+		const citationDiv = document.createElement("div");
+		citationDiv.className = "citation";
+		const citationText = document.createElement("div");
+		//citationText .className = "citation";
+		citationText.innerHTML = result[key];
+		const citationLink = "https://doi.org/"+key;
+		const citationAnchor = document.createElement("a");
+		citationAnchor.href = citationLink;
+		citationAnchor.innerHTML = citationLink;
+		citationAnchor.target = "_blank";
+		citationText.appendChild(citationAnchor);
+		citationDiv.appendChild(citationText);
+
+		// button to copy the citation
+		const copyButton = document.createElement("i");
+		copyButton.className = "fa fa-copy";
+		copyButton.id = "citBtn";
+		copyButton.addEventListener('click', () => {
+			const text = citationText.innerText;
+			navigator.clipboard.writeText(text).then(() => {
+				console.log('Copied "${text}" to clipboard');
+				copyButton.style = "color:green";
+			})
+		})
+		citationDiv.appendChild(copyButton);
+
+		document.getElementById("content").appendChild(citationDiv);
+	});
+}
 
 

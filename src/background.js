@@ -122,7 +122,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			},
 		};
 
-		fetch("https://zenodo.org/api/deposit/depositions", {
+		/*fetch("https://zenodo.org/api/deposit/depositions", {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -209,6 +209,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			})
 			.catch((error) => {
 				console.error("Error creating deposit:", error);
+			}); */
+			// send to popup the DOI
+			chrome.runtime.sendMessage({
+				message: "DEPOSIT DOI",
+				payload: {
+					//depositDOI: data.doi,
+					//creators: data.metadata.creators,
+					//title: data.metadata.title,
+					//publication_date: data.metadata.publication_date,
+					//publisher: "Zenodo",
+					//version: data.metadata.version
+					depositDOI: "10.5281/zenodo.7796232",
+					creators: "Carbon, Seth, & Mungall, Chris",
+					title: "Gene Ontology Data Archive [Data set]",
+					publication_date: "2023-04-01",
+					publisher: "Zenodo",
+					version: "1.0"
+				}
+			});
+			chrome.runtime.sendMessage({
+				message: "DEPOSIT DOI",
+				payload: {
+					//depositDOI: data.doi,
+					//creators: data.metadata.creators,
+					//title: data.metadata.title,
+					//publication_date: data.metadata.publication_date,
+					//publisher: "Zenodo",
+					//version: data.metadata.version
+					depositDOI: "10.5281/zenodo.7812326",
+					creators: "Banda, Juan M., Tekumalla, Ramya, Wang",
+					title: "A large-scale COVID-19 Twitter chatter dataset for open scientific research - an international collaboration [Data set]",
+					publication_date: "2023",
+					publisher: "Zenodo",
+					version: "1.0"
+				}
 			});
 	}
 });
