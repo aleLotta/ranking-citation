@@ -2,13 +2,18 @@
 
 import './popup.css';
 
+// Set of the keys for the citation already stored
+const keySet = new Set();
+
 document.addEventListener("DOMContentLoaded", function (event) {
+
 	// implement the fact that this is returned if the page is not the correct URL
 	// I can use a message from the content-script
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		var currentUrl = tabs[0].url;
 
 		if (currentUrl.match('https://scholar.google.com/scholar*')) {
+
 			document.getElementById('content').innerHTML += '<button id="captureBtn">Capture Snapshot</button>';
 
 			// button for capturing the snapshot
@@ -40,6 +45,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 								cmd: 'CREATE RO',
 								payload: {
 									message: response.data,
+									title: response.title
 								},
 							},
 							(response) => {
@@ -114,8 +120,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
 					const citation = creators + ". " + title + " " + publication_date + ". " + publisher +
 						". (Version " + version + "). ";
 
-					chrome.storage.local.set({ [depositDOI]: citation }).then(() => {
-						console.log("Value is set to " + citation);
+					chrome.storage.sync.set({ ["DOI" + depositDOI]: citation }).then(() => {
+						//console.log("Value is set to " + citation);
 					});
 
 					updateCitations(depositDOI);
@@ -139,16 +145,28 @@ document.addEventListener("DOMContentLoaded", function (event) {
 			document.getElementById('content').appendChild(notAvailable);
 		}
 
+		// Event handler for opening options page
+		const optionsBtn = document.getElementById("optionsBtn");
+		optionsBtn.addEventListener("click", function () {
+			if (chrome.runtime.openOptionsPage) {
+				chrome.runtime.openOptionsPage();
+			} else {
+				window.open(chrome.runtime.getURL('options.html'));
+			}
+		});
+
 		document.getElementById("content").appendChild(document.createElement("hr"));
 		const citHeading = document.createElement("h3");
 		citHeading.id = "citHeading";
 		citHeading.innerHTML = "Your Citations";
 		document.getElementById("content").appendChild(citHeading);
-		chrome.storage.local.get(null, function (items) {
+		chrome.storage.sync.get(null, function (items) {
 			var allKeys = Object.keys(items);
 			for (var i = 0; i < allKeys.length; i++) {
 				var key = allKeys[i];
-				updateCitations(key);
+				if (key.startsWith('DOI')) {
+					updateCitations(key);
+				}
 			}
 		});
 	});
@@ -156,34 +174,39 @@ document.addEventListener("DOMContentLoaded", function (event) {
 });
 
 function updateCitations(key) {
-	chrome.storage.local.get([key]).then((result) => {
-		const citationDiv = document.createElement("div");
-		citationDiv.className = "citation";
-		const citationText = document.createElement("div");
-		//citationText .className = "citation";
-		citationText.innerHTML = result[key];
-		const citationLink = "https://doi.org/"+key;
-		const citationAnchor = document.createElement("a");
-		citationAnchor.href = citationLink;
-		citationAnchor.innerHTML = citationLink;
-		citationAnchor.target = "_blank";
-		citationText.appendChild(citationAnchor);
-		citationDiv.appendChild(citationText);
+	chrome.storage.sync.get([key]).then((result) => {
+		if (!(keySet.has(key))) {
+			const citationDiv = document.createElement("div");
+			citationDiv.className = "citation";
+			const citationText = document.createElement("div");
+			//citationText .className = "citation";
+			citationText.innerHTML = result[key];
+			const citationLink = "https://doi.org/" + key.replace("DOI", "");
+			const citationAnchor = document.createElement("a");
+			citationAnchor.href = citationLink;
+			citationAnchor.innerHTML = citationLink;
+			citationAnchor.target = "_blank";
+			citationText.appendChild(citationAnchor);
+			citationDiv.appendChild(citationText);
 
-		// button to copy the citation
-		const copyButton = document.createElement("i");
-		copyButton.className = "fa fa-copy";
-		copyButton.id = "citBtn";
-		copyButton.addEventListener('click', () => {
-			const text = citationText.innerText;
-			navigator.clipboard.writeText(text).then(() => {
-				console.log('Copied "${text}" to clipboard');
-				copyButton.style = "color:green";
+			// button to copy the citation
+			const copyButton = document.createElement("i");
+			copyButton.className = "fa fa-copy";
+			copyButton.id = "copyBtn";
+			copyButton.addEventListener('click', () => {
+				const text = citationText.innerText;
+				navigator.clipboard.writeText(text).then(() => {
+					console.log('Copied "${text}" to clipboard');
+					copyButton.style = "color:green";
+				})
 			})
-		})
-		citationDiv.appendChild(copyButton);
+			citationDiv.appendChild(copyButton);
 
-		document.getElementById("content").appendChild(citationDiv);
+			document.getElementById("content").appendChild(citationDiv);
+
+			keySet.add(key.replace("DOI", ""));
+		}
+		else alert("Ranking Already Captured");
 	});
 }
 

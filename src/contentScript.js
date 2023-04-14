@@ -1,6 +1,7 @@
 import html2canvas from "html2canvas";
 
 let data;
+let pageTitle;
 const vocab = "http://example.com#";
 
 // Listener from popup to start gathering data
@@ -11,7 +12,7 @@ chrome.runtime.onMessage.addListener(
 			const someData = getData();
 
 			//sendResponse({ data: someData, image: pageScreenshot });
-			sendResponse({ data: someData });
+			sendResponse({ data: someData, title: pageTitle });
 		}
 	}
 );
@@ -77,7 +78,7 @@ function getData() {
 	 */
 	const URL = document.location.href;
 	const baseURL = URL.split('/')[2];
-	const pageTitle = document.querySelector('title').innerText;
+	pageTitle = document.querySelector('title').innerText;
 	const name = pageTitle.split('-')[1].slice(1);
 	// check if it usefull the version of the search engine and where to find it
 	// const version;

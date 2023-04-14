@@ -19,7 +19,6 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
-    "fs": "^0.0.1-security",
     "html2canvas": "^1.4.1",
     "ro-crate": "^3.2.1"
   }

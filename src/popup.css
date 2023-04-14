@@ -20,12 +20,6 @@
   align-items: center;
 }
 
-#citBtn {
-  margin: 0 5px 0 7px;
-  font-size: 26px;
-  color: #0000007d;
-}
-
 #warningPara {
   color: red;
   display: flex;
@@ -55,4 +49,14 @@ hr {
 
 #citHeading {
   padding-left: 5px;
+}
+
+#copyBtn {
+  margin: 0 5px 0 7px;
+  font-size: 26px;
+  color: #0000007d;
+}
+
+#copyBtn:hover {
+  color: black;
 }

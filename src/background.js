@@ -5,6 +5,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 		// Log message coming from the `request` parameter
 		const data = request.payload.message;
+
 		//const imgScreenShot = request.payload.image;
 		//let imgScreenShot;
 		//chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -104,19 +105,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 		// Upload to Zenodo
 		// NB: this needs to have deposit:write access
-		const ACCESS_TOKEN = '1Rgx8cybYk1HwgqPFFlt0B9jsmPy5UKynS9lAUnswT6QjPVOBX6R0N4e5k9x';
+
+		let ACCESS_TOKEN = '1Rgx8cybYk1HwgqPFFlt0B9jsmPy5UKynS9lAUnswT6QjPVOBX6R0N4e5k9x';
+		let ZENODO_USER = "Alessandro Lotta";
+		let AFFILIATION = "Unipd";
+		chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation'], function (items) {
+			ACCESS_TOKEN = items.accessToken;
+			ZENODO_USER = items.firstName + " " + items.lastName;
+			AFFILIATION = items.affiliation;
+			//console.log("--" + ACCESS_TOKEN + " " + ZENODO_USER + " " + AFFILIATION + "--");
+		});
+
+		const TITLE = "Ranking snapshot for the query \"" + request.payload.title.split("-")[0].trim().toUpperCase() +
+			"\" performed on " + request.payload.title.split("-")[1].trim();
+		const DESCRIPTION = "This is a deposit created via the Zenodo API";
 		const pub_date = new Date().getDate;
 
 		const depositMetadata = {
 			metadata: {
-				title: "Ranking Snapshot",
+				title: TITLE,
 				upload_type: "dataset",
 				publication_date: pub_date,
-				description: "This is a test deposit created via the Zenodo API",
+				description: DESCRIPTION,
+				keywords: ["RO-Crate", "metadata", "Snapshot", "Search Result"],
 				creators: [
 					{
-						name: "Alessandro Lotta",
-						affiliation: "Unipd",
+						name: ZENODO_USER,
+						affiliation: AFFILIATION,
 					},
 				],
 			},
@@ -210,40 +225,40 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			.catch((error) => {
 				console.error("Error creating deposit:", error);
 			}); */
-			// send to popup the DOI
-			chrome.runtime.sendMessage({
-				message: "DEPOSIT DOI",
-				payload: {
-					//depositDOI: data.doi,
-					//creators: data.metadata.creators,
-					//title: data.metadata.title,
-					//publication_date: data.metadata.publication_date,
-					//publisher: "Zenodo",
-					//version: data.metadata.version
-					depositDOI: "10.5281/zenodo.7796232",
-					creators: "Carbon, Seth, & Mungall, Chris",
-					title: "Gene Ontology Data Archive [Data set]",
-					publication_date: "2023-04-01",
-					publisher: "Zenodo",
-					version: "1.0"
-				}
-			});
-			chrome.runtime.sendMessage({
-				message: "DEPOSIT DOI",
-				payload: {
-					//depositDOI: data.doi,
-					//creators: data.metadata.creators,
-					//title: data.metadata.title,
-					//publication_date: data.metadata.publication_date,
-					//publisher: "Zenodo",
-					//version: data.metadata.version
-					depositDOI: "10.5281/zenodo.7812326",
-					creators: "Banda, Juan M., Tekumalla, Ramya, Wang",
-					title: "A large-scale COVID-19 Twitter chatter dataset for open scientific research - an international collaboration [Data set]",
-					publication_date: "2023",
-					publisher: "Zenodo",
-					version: "1.0"
-				}
-			});
+		// send to popup the DOI
+		chrome.runtime.sendMessage({
+			message: "DEPOSIT DOI",
+			payload: {
+				//depositDOI: data.doi,
+				//creators: data.metadata.creators,
+				//title: data.metadata.title,
+				//publication_date: data.metadata.publication_date,
+				//publisher: "Zenodo",
+				//version: data.metadata.version
+				depositDOI: "10.5281/zenodo.7796232",
+				creators: "Carbon, Seth, & Mungall, Chris",
+				title: "Gene Ontology Data Archive [Data set]",
+				publication_date: "2023-04-01",
+				publisher: "Zenodo",
+				version: "1.0"
+			}
+		});
+		chrome.runtime.sendMessage({
+			message: "DEPOSIT DOI",
+			payload: {
+				//depositDOI: data.doi,
+				//creators: data.metadata.creators,
+				//title: data.metadata.title,
+				//publication_date: data.metadata.publication_date,
+				//publisher: "Zenodo",
+				//version: data.metadata.version
+				depositDOI: "10.5281/zenodo.7812326",
+				creators: "Banda, Juan M., Tekumalla, Ramya, Wang",
+				title: "A large-scale COVID-19 Twitter chatter dataset for open scientific research - an international collaboration [Data set]",
+				publication_date: "2023",
+				publisher: "Zenodo",
+				version: "1.0"
+			}
+		});
 	}
 });
