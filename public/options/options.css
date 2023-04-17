@@ -1,0 +1,48 @@
+/* Style for the fieldset */
+fieldset {
+    border: 2px solid #ccc;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+/* Style for the legend */
+legend {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Style for the labels */
+label {
+    /*display: block;*/
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+/* Style for the input fields */
+input[type="text"] {
+    border: 1px solid #ccc;
+    padding: 5px;
+    border-radius: 3px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+/* Style for the submit button */
+input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: block;
+    margin: auto;
+}
+
+/* Style for the submit button on hover */
+input[type="submit"]:hover {
+    background-color: #45a049;
+}

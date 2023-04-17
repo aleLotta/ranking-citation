@@ -1,3 +1,8 @@
+// Go to options page when installed
+chrome.runtime.onInstalled.addListener(() => {
+	chrome.runtime.openOptionsPage();
+})
+
 
 // Check if popup as said to start RO creation
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

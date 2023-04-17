@@ -11,21 +11,23 @@
 
 <body>
     <div id="content">
-        <form id="options-form"></form>
-        <fieldset>
-            <legend>Zenodo metadata:</legend>
-            Insert the ACCESS_TOKEN that you can obtain through Zenodo, the name and affilitation for the deposit<br><br>
-            <label for="atoken">Access Token:</label><br>
-            <input type="text" id="atoken" name="atoken" required><br>
-            <label for="fname">First name:</label><br>
-            <input type="text" id="fname" name="fname" value="John"><br>
-            <label for="lname">Last name:</label><br>
-            <input type="text" id="lname" name="lname" value="Doe"><br>
-            <label for="affiliation">Affiliation</label><br>
-            <input type="text" id="affiliation" name="affiliation" value="Unipd"><br><br>
+        <form id="options-form">
+            <fieldset>
+                <legend>Zenodo metadata:</legend>
+                Insert the ACCESS_TOKEN that you can obtain through Zenodo, and also the name and affiliation for the
+                deposit<br><br>
+                <label for="atoken">Access Token(*):</label><br>
+                <input type="text" id="atoken" name="atoken" required><br>
+                <label for="fname">First name:</label><br>
+                <input type="text" id="fname" name="fname" value="John"><br>
+                <label for="lname">Last name:</label><br>
+                <input type="text" id="lname" name="lname" value="Doe"><br>
+                <label for="affiliation">Affiliation:</label><br>
+                <input type="text" id="affiliation" name="affiliation" value="Unipd"><br><br>
 
-            <input type="submit" value="Submit">
-        </fieldset>
+                <input type="submit" value="Submit">
+            </fieldset>
+        </form>
     </div>
     <div id="status"></div>
     <script src="options.js"></script>
