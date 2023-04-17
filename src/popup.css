@@ -10,6 +10,7 @@
 #title {
   display: flex;
   justify-content: center;
+  margin-top: 0;
 }
 
 .citation {
@@ -59,4 +60,15 @@ hr {
 
 #copyBtn:hover {
   color: black;
+}
+
+#optionsBtn {
+  font-size: 18px;
+  margin-right: 0;
+  margin-left: auto;
+}
+
+#header {
+  display: flex;
+  flex-direction: column;
 }

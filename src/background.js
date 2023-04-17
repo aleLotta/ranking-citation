@@ -110,160 +110,144 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 		// Upload to Zenodo
 		// NB: this needs to have deposit:write access
+		//let ACCESS_TOKEN = '1Rgx8cybYk1HwgqPFFlt0B9jsmPy5UKynS9lAUnswT6QjPVOBX6R0N4e5k9x';
+		//let ZENODO_USER = "Alessandro Lotta";
+		//let AFFILIATION = "Unipd";
+		let ACCESS_TOKEN, ZENODO_USER, AFFILIATION;
 
-		let ACCESS_TOKEN = '1Rgx8cybYk1HwgqPFFlt0B9jsmPy5UKynS9lAUnswT6QjPVOBX6R0N4e5k9x';
-		let ZENODO_USER = "Alessandro Lotta";
-		let AFFILIATION = "Unipd";
 		chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation'], function (items) {
 			ACCESS_TOKEN = items.accessToken;
 			ZENODO_USER = items.firstName + " " + items.lastName;
 			AFFILIATION = items.affiliation;
 			//console.log("--" + ACCESS_TOKEN + " " + ZENODO_USER + " " + AFFILIATION + "--");
-		});
-
-		const TITLE = "Ranking snapshot for the query \"" + request.payload.title.split("-")[0].trim().toUpperCase() +
-			"\" performed on " + request.payload.title.split("-")[1].trim();
-		const DESCRIPTION = "This is a deposit created via the Zenodo API";
-		const pub_date = new Date().getDate;
-
-		const depositMetadata = {
-			metadata: {
-				title: TITLE,
-				upload_type: "dataset",
-				publication_date: pub_date,
-				description: DESCRIPTION,
-				keywords: ["RO-Crate", "metadata", "Snapshot", "Search Result"],
-				creators: [
-					{
-						name: ZENODO_USER,
-						affiliation: AFFILIATION,
-					},
-				],
-			},
-		};
-
-		/*fetch("https://zenodo.org/api/deposit/depositions", {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${ACCESS_TOKEN}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(depositMetadata),
-		})
-			.then((response) => response.json())
-			.then((data) => {
-
-				// Get the deposit ID from the response
-				const depositId = data.id;
-
-				// Upload the data file to the new deposit
-				const formData = new FormData();
-				formData.append("file", dataFile);
-
-				fetch(`https://zenodo.org/api/deposit/depositions/${depositId}/files`, {
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${ACCESS_TOKEN}`,
-					},
-					body: formData,
-				})
-					.then((response) => response.json())
-					.then((data) => {
-						console.log("File uploaded successfully:", data);
-					})
-					.catch((error) => {
-						console.error("Error uploading file:", error);
-					});
-
-				// Upload the crate file 
-				const formData2 = new FormData();
-				formData2.append("file", crateFile);
-
-				fetch(`https://zenodo.org/api/deposit/depositions/${depositId}/files`, {
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${ACCESS_TOKEN}`,
-					},
-					body: formData2,
-				})
-					.then((response) => response.json())
-					.then((data) => {
-						console.log("File uploaded successfully:", data);
-					})
-					.catch((error) => {
-						console.error("Error uploading file:", error);
-					});
-
-				// Tell contentScript to take a screenshot and upload on Zenodo
-				// Warning: do not open the inspection tool when running
-				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-					chrome.tabs.sendMessage(tabs[0].id, {
-						message: "SCREENSHOT",
-						payload: {
-							token: ACCESS_TOKEN,
-							depositId: depositId
-						}
-					});
-				});
 
 
-				// send to popup the DOI
-				chrome.runtime.sendMessage({
-					message: "DEPOSIT DOI",
-					payload: {
-						//depositDOI: data.doi,
-						//creators: data.metadata.creators,
-						//title: data.metadata.title,
-						//publication_date: data.metadata.publication_date,
-						//publisher: "Zenodo",
-						//version: data.metadata.version
-						depositDOI: "10.5281/zenodo.7796232",
-						creators: "Carbon, Seth, & Mungall, Chris",
-						title: " Gene Ontology Data Archive [Data set]",
-						publication_date: "2023-04-01",
-						publisher: "Zenodo",
-						version: "1.0"
-					}
-				})
-				
+			const TITLE = "Ranking snapshot for the query \"" + request.payload.title.split("-")[0].trim().toUpperCase() +
+				"\" performed on " + request.payload.title.split("-")[1].trim();
+			const DESCRIPTION = "This is a deposit created via the Zenodo API";
+			const pub_date = new Date().getDate;
+
+			const depositMetadata = {
+				metadata: {
+					title: TITLE,
+					upload_type: "dataset",
+					publication_date: pub_date,
+					description: DESCRIPTION,
+					keywords: ["RO-Crate", "metadata", "Snapshot", "Search Result"],
+					creators: [
+						{
+							name: ZENODO_USER,
+							affiliation: AFFILIATION,
+						},
+					],
+				},
+			};
+
+			fetch("https://zenodo.org/api/deposit/depositions", {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${ACCESS_TOKEN}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(depositMetadata),
 			})
-			.catch((error) => {
-				console.error("Error creating deposit:", error);
-			}); */
-		// send to popup the DOI
-		chrome.runtime.sendMessage({
-			message: "DEPOSIT DOI",
-			payload: {
-				//depositDOI: data.doi,
-				//creators: data.metadata.creators,
-				//title: data.metadata.title,
-				//publication_date: data.metadata.publication_date,
-				//publisher: "Zenodo",
-				//version: data.metadata.version
-				depositDOI: "10.5281/zenodo.7796232",
-				creators: "Carbon, Seth, & Mungall, Chris",
-				title: "Gene Ontology Data Archive [Data set]",
-				publication_date: "2023-04-01",
-				publisher: "Zenodo",
-				version: "1.0"
-			}
+				.then((response) => response.json())
+				.then((data) => {
+
+					// Get the deposit ID from the response
+					const depositId = data.id;
+
+					// Upload the data file to the new deposit
+					const formData = new FormData();
+					formData.append("file", dataFile);
+
+					fetch(`https://zenodo.org/api/deposit/depositions/${depositId}/files`, {
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${ACCESS_TOKEN}`,
+						},
+						body: formData,
+					})
+						.then((response) => response.json())
+						.then((data) => {
+							console.log("File uploaded successfully:", data);
+						})
+						.catch((error) => {
+							console.error("Error uploading file:", error);
+						});
+
+					// Upload the crate file 
+					const formData2 = new FormData();
+					formData2.append("file", crateFile);
+
+					fetch(`https://zenodo.org/api/deposit/depositions/${depositId}/files`, {
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${ACCESS_TOKEN}`,
+						},
+						body: formData2,
+					})
+						.then((response) => response.json())
+						.then((data) => {
+							console.log("File uploaded successfully:", data);
+						})
+						.catch((error) => {
+							console.error("Error uploading file:", error);
+						});
+
+					// Tell contentScript to take a screenshot and upload on Zenodo
+					// Warning: do not open the inspection tool when running
+					chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+						chrome.tabs.sendMessage(tabs[0].id, {
+							message: "SCREENSHOT",
+							payload: {
+								token: ACCESS_TOKEN,
+								depositId: depositId
+							}
+						});
+					});
+
+				})
+				.catch((error) => {
+					console.error("Error creating deposit:", error);
+				});
+			// send to popup the DOI
+			chrome.runtime.sendMessage({
+				message: "DEPOSIT DOI",
+				payload: {
+					//depositDOI: data.doi,
+					//creators: data.metadata.creators,
+					//title: data.metadata.title,
+					//publication_date: data.metadata.publication_date,
+					//publisher: "Zenodo",
+					//version: data.metadata.version
+					depositDOI: "10.5281/zenodo.7796232",
+					creators: "Carbon, Seth, & Mungall, Chris",
+					title: "Gene Ontology Data Archive [Data set]",
+					publication_date: "2023-04-01",
+					publisher: "Zenodo",
+					version: "1.0"
+				}
+			});
+			chrome.runtime.sendMessage({
+				message: "DEPOSIT DOI",
+				payload: {
+					//depositDOI: data.doi,
+					//creators: data.metadata.creators,
+					//title: data.metadata.title,
+					//publication_date: data.metadata.publication_date,
+					//publisher: "Zenodo",
+					//version: data.metadata.version
+					depositDOI: "10.5281/zenodo.7812326",
+					creators: "Banda, Juan M., Tekumalla, Ramya, Wang",
+					title: "A large-scale COVID-19 Twitter chatter dataset for open scientific research - an international collaboration [Data set]",
+					publication_date: "2023",
+					publisher: "Zenodo",
+					version: "1.0"
+				}
+			});
 		});
-		chrome.runtime.sendMessage({
-			message: "DEPOSIT DOI",
-			payload: {
-				//depositDOI: data.doi,
-				//creators: data.metadata.creators,
-				//title: data.metadata.title,
-				//publication_date: data.metadata.publication_date,
-				//publisher: "Zenodo",
-				//version: data.metadata.version
-				depositDOI: "10.5281/zenodo.7812326",
-				creators: "Banda, Juan M., Tekumalla, Ramya, Wang",
-				title: "A large-scale COVID-19 Twitter chatter dataset for open scientific research - an international collaboration [Data set]",
-				publication_date: "2023",
-				publisher: "Zenodo",
-				version: "1.0"
-			}
-		});
+
+
 	}
 });

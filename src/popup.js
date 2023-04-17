@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 					const citation = creators + ". " + title + " " + publication_date + ". " + publisher +
 						". (Version " + version + "). ";
 
-					chrome.storage.sync.set({ ["DOI" + depositDOI]: citation }).then(() => {
+					chrome.storage.sync.set({ [depositDOI]: citation }).then(() => {
 						//console.log("Value is set to " + citation);
 					});
 
@@ -162,9 +162,10 @@ document.addEventListener("DOMContentLoaded", function (event) {
 		document.getElementById("content").appendChild(citHeading);
 		chrome.storage.sync.get(null, function (items) {
 			var allKeys = Object.keys(items);
+			const regex = /^\d+/;
 			for (var i = 0; i < allKeys.length; i++) {
 				var key = allKeys[i];
-				if (key.startsWith('DOI')) {
+				if (regex.test(key)) {
 					updateCitations(key);
 				}
 			}
@@ -181,7 +182,7 @@ function updateCitations(key) {
 			const citationText = document.createElement("div");
 			//citationText .className = "citation";
 			citationText.innerHTML = result[key];
-			const citationLink = "https://doi.org/" + key.replace("DOI", "");
+			const citationLink = "https://doi.org/" + key;
 			const citationAnchor = document.createElement("a");
 			citationAnchor.href = citationLink;
 			citationAnchor.innerHTML = citationLink;
@@ -204,9 +205,12 @@ function updateCitations(key) {
 
 			document.getElementById("content").appendChild(citationDiv);
 
-			keySet.add(key.replace("DOI", ""));
+			keySet.add(key);
 		}
-		else alert("Ranking Already Captured");
+		else {
+			console.log(key);
+			alert("Ranking Already Captured");
+		}
 	});
 }
 
