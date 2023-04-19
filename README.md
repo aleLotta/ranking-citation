@@ -1,4 +1,4 @@
-# <img src="public/icons/icon_48.png" width="45" align="left"> Rank Citation
+# <img src="public/icons/icon_48.png" width="45" align="left"> Citation Ranking
 
 My Chrome Extension
 

@@ -8,118 +8,121 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.cmd === 'CREATE RO') {
 
-		// Log message coming from the `request` parameter
-		const data = request.payload.message;
 
-		//const imgScreenShot = request.payload.image;
-		//let imgScreenShot;
-		//chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-		//	imgScreenShot = request.image;
-		//	console.log(imgScreenShot);
-		//
-		//	imgScreenShot.toBlob(function (blob) {
-		//		console.log(blob);
-		//	})
-		//});
-
-		// console.log(data);
-		// Send a response message
-		// sendResponse({
-		// 	message,
-		// });
-
-		// Creation of the Research Object Crate
-		//const { ROCrate } = require('ro-crate');
-		//const crate = new ROCrate();
-		//console.log('Imported ro-crate correctly');
-
-		const currentTimeStamp = new Date();
-
-		const user_id = "https://orcid.org/0000-0000-0000-0000";
-		const user = {
-			"@id": user_id,
-			"@type": "Person",
-			"name": "User1",
-			"affiliation": "Unipd"
-		};
-
-		let RC = {
-			"@context": "https://w3id.org/ro/crate/1.1/context",
-			"@graph": [
-				{
-					"@id": "./",
-					"@type": "Dataset",
-					"datePublished": currentTimeStamp,
-					"hasPart": [
-						{
-							"@id": "output-data.jsonld"
-						}
-					],
-					"author": {
-						"@id": user_id
-					}
-				},
-				{
-					"@id": "ro-crate-metadata.json",
-					"@type": "CreativeWork",
-					"about": {
-						"@id": "./"
-					},
-					"conformsTo": {
-						"@id": "https://w3id.org/ro/crate/1.1"
-					}
-				},
-				{
-					"@id": "output-data.json",
-					"@type": "File",
-					"author": {
-						"@id": user_id
-					},
-					"encodingFormat": "application/json",
-					"name": "result data"
-				},
-				{
-					"@id": "ranking-snapshot.png",
-					"@type": "File",
-					"author": {
-						"@id": user_id
-					},
-					"encodingFormat": "image/png",
-					"name": "screenshot"
-				},
-				user
-			]
-		}
-
-		// Send response to popup script
-		sendResponse({
-			response: "RO created",
-			payload: {
-				content: RC
-			}
-		});
-
-		// create File variable for gathered data
-		const dataBlob = new Blob([data], { type: 'application/ld+json' });
-		const dataFile = new File([dataBlob], 'output-data.jsonld', { type: 'application/ld+json' });
-
-		// create File variable for ro-crate data
-		const crateBlob = new Blob([JSON.stringify(RC, null, 2)], { type: 'application/json' });
-		const crateFile = new File([crateBlob], 'ro-crate-metadata.json', { type: 'application/json' });
-
-
-		// Upload to Zenodo
-		// NB: this needs to have deposit:write access
-		//let ACCESS_TOKEN = '1Rgx8cybYk1HwgqPFFlt0B9jsmPy5UKynS9lAUnswT6QjPVOBX6R0N4e5k9x';
-		//let ZENODO_USER = "Alessandro Lotta";
-		//let AFFILIATION = "Unipd";
-		let ACCESS_TOKEN, ZENODO_USER, AFFILIATION;
-
-		chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation'], function (items) {
-			ACCESS_TOKEN = items.accessToken;
-			ZENODO_USER = items.firstName + " " + items.lastName;
-			AFFILIATION = items.affiliation;
+		chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', 'orcid'], function (items) {
+			const ACCESS_TOKEN = items.accessToken;
+			const ZENODO_USER = items.firstName + " " + items.lastName;
+			const AFFILIATION = items.affiliation;
+			const ORCID = items.orcid;
 			//console.log("--" + ACCESS_TOKEN + " " + ZENODO_USER + " " + AFFILIATION + "--");
+
+
+			// Log message coming from the `request` parameter
+			const data = request.payload.message;
+
+			//const imgScreenShot = request.payload.image;
+			//let imgScreenShot;
+			//chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+			//	imgScreenShot = request.image;
+			//	console.log(imgScreenShot);
+			//
+			//	imgScreenShot.toBlob(function (blob) {
+			//		console.log(blob);
+			//	})
+			//});
+
+			// console.log(data);
+			// Send a response message
+			// sendResponse({
+			// 	message,
+			// });
+
+			// Creation of the Research Object Crate
+			//const { ROCrate } = require('ro-crate');
+			//const crate = new ROCrate();
+			//console.log('Imported ro-crate correctly');
+
+			const currentTimeStamp = new Date();
+
+			const user_id = ORCID;
+			const user = {
+				"@id": user_id,
+				"@type": "Person",
+				"name": ZENODO_USER,
+				"affiliation": AFFILIATION,
+			};
+
+			let RC = {
+				"@context": "https://w3id.org/ro/crate/1.1/context",
+				"@graph": [
+					{
+						"@id": "./",
+						"@type": "Dataset",
+						"datePublished": currentTimeStamp,
+						"hasPart": [
+							{
+								"@id": "output-data.jsonld"
+							}
+						],
+						"author": {
+							"@id": user_id
+						}
+					},
+					{
+						"@id": "ro-crate-metadata.json",
+						"@type": "CreativeWork",
+						"about": {
+							"@id": "./"
+						},
+						"conformsTo": {
+							"@id": "https://w3id.org/ro/crate/1.1"
+						}
+					},
+					{
+						"@id": "output-data.json",
+						"@type": "File",
+						"author": {
+							"@id": user_id
+						},
+						"encodingFormat": "application/json",
+						"name": "result data"
+					},
+					{
+						"@id": "ranking-snapshot.png",
+						"@type": "File",
+						"author": {
+							"@id": user_id
+						},
+						"encodingFormat": "image/png",
+						"name": "screenshot"
+					},
+					user
+				]
+			}
+
+			// Send response to popup script
+			sendResponse({
+				response: "RO created",
+				payload: {
+					content: RC
+				}
+			});
+
+			// create File variable for gathered data
+			const dataBlob = new Blob([data], { type: 'application/ld+json' });
+			const dataFile = new File([dataBlob], 'output-data.jsonld', { type: 'application/ld+json' });
+
+			// create File variable for ro-crate data
+			const crateBlob = new Blob([JSON.stringify(RC, null, 2)], { type: 'application/json' });
+			const crateFile = new File([crateBlob], 'ro-crate-metadata.json', { type: 'application/json' });
+
+
+			// Upload to Zenodo
+			// NB: this needs to have deposit:write access
+			//let ACCESS_TOKEN = '1Rgx8cybYk1HwgqPFFlt0B9jsmPy5UKynS9lAUnswT6QjPVOBX6R0N4e5k9x';
+			//let ORCID = 'https://orcid.org/0009-0009-5047-606X'
+			//let ZENODO_USER = "Alessandro Lotta";
+			//let AFFILIATION = "Unipd";
 
 
 			const TITLE = "Ranking snapshot for the query \"" + request.payload.title.split("-")[0].trim().toUpperCase() +
@@ -138,6 +141,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						{
 							name: ZENODO_USER,
 							affiliation: AFFILIATION,
+							orcid: ORCID
 						},
 					],
 				},

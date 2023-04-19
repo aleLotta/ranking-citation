@@ -1,16 +1,22 @@
 #content {
-  /*max-width: 350px;
-  width: max-content;*/
   width: 350px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0px 0px 5px #ddd;
+  background-color: #fff;
+  overflow: hidden;
 }
 
 #title {
-  display: flex;
-  justify-content: center;
-  margin-top: 0;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  margin: 10px 0;
 }
 
 .citation {
@@ -19,6 +25,8 @@
   padding: 5px;
   display: flex;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 #warningPara {
@@ -31,18 +39,25 @@
 }
 
 #captureBtn {
-  margin: 10px;
+  margin: 10px auto;
   background: none;
   border: solid 2px blue;
   border-radius: 5px;
   padding: 5px;
   color: blue;
-  margin-left: auto;
-  margin-right: auto;
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  text-align: center;
+}
+
+#captureBtn:hover {
+  background-color: blue;
+  color: #fff;
 }
 
 hr {
-  width: 80%;
+  width: 100%;
   height: 0.5px;
   background-color: black;
   border: none;
@@ -50,6 +65,7 @@ hr {
 
 #citHeading {
   padding-left: 5px;
+  font-weight: bold;
 }
 
 #copyBtn {
@@ -64,8 +80,8 @@ hr {
 
 #optionsBtn {
   font-size: 18px;
-  margin-right: 0;
   margin-left: auto;
+  margin-right: auto;
 }
 
 #header {
