@@ -2,7 +2,9 @@ import html2canvas from "html2canvas";
 
 let data;
 let pageTitle;
-const vocab = "http://example.com#";
+const vocab = "https://citationranking.dei.unipd.it";
+const ontology = vocab + "/ontology/";
+const resource = vocab + "/resource/";
 
 // Listener from popup to start gathering data
 chrome.runtime.onMessage.addListener(
@@ -97,29 +99,33 @@ function getData() {
 	// define Data and Object Properties
 	data.push(
 		{
-			"@id": vocab + "fromSystem",
+			"@id": vocab,
+			"@type": ["http://www.w3.org/2002/07/owl#Ontology"]
+		},
+		{
+			"@id": ontology + "fromSystem",
 			"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
 		},
 		{
-			"@id": vocab + "appliedTo",
+			"@id": ontology + "appliedTo",
 			"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
 		},
 		{
-			"@id": vocab + "produces",
+			"@id": ontology + "produces",
 			"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
 		},
 		{
-			"@id": vocab + "hasResult",
+			"@id": ontology + "hasResult",
 			"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
 		},
 		{
-			"@id": vocab + "belongsTo",
+			"@id": ontology + "belongsTo",
 			"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
 		},
 
 
 		{
-			"@id": vocab + "timestamp",
+			"@id": ontology + "timestamp",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
@@ -127,19 +133,19 @@ function getData() {
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
-			"@id": vocab + "version",
+			"@id": ontology + "version",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
-			"@id": vocab + "queryText",
+			"@id": ontology + "queryText",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
-			"@id": vocab + "language",
+			"@id": ontology + "language",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
-			"@id": vocab + "filters",
+			"@id": ontology + "filters",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
@@ -147,78 +153,77 @@ function getData() {
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
-			"@id": vocab + "authors",
+			"@id": ontology + "authors",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
-			"@id": vocab + "publicationYear",
+			"@id": ontology + "publicationYear",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
-			"@id": vocab + "description",
+			"@id": ontology + "description",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
-			"@id": vocab + "n_citations",
+			"@id": ontology + "n_citations",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 	);
 
 	// Add individuals to the model
 	data.push({
-		"@id": vocab + "ranking",
-		"@type": vocab + "RankingSnapshot",
-		"http://example.com#timestamp": timestamp
+		"@id": resource + "ranking",
+		"@type": ontology + "RankingSnapshot",
+		[ontology + "timestamp"]: timestamp
 	}, {
 		"@id": "http://" + baseURL,
-		"@type": vocab + "System",
-		"https://schema.org/name": name,
-		"http://example.com#version": "?"
+		"@type": ontology + "System",
+		[ontology + "name"]: name
 	}, {
-		"@id": vocab + "query",
-		"@type": vocab + "SearchQuery",
-		"http://example.com#queryText": queryText,
-		"http://example.com#language": language,
-		"http://example.com#filters": filters
+		"@id": resource + "query",
+		"@type": ontology + "SearchQuery",
+		[ontology + "queryText"]: queryText,
+		[ontology + "language"]: language,
+		[ontology + "filters"]: filters
 	}, {
 		"@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#List",
 		"@type": "http://www.w3.org/2002/07/owl#Class"
 	}, {
-		"@id": vocab + "resultList",
+		"@id": resource + "resultList",
 		"@type": "http://www.w3.org/1999/02/22-rdf-syntax-ns#List"
 	});
 
 	// add Object Properties to the model
 	data.push(
 		{
-			"@id": vocab + "ranking",
-			"http://example.com#fromSystem": [{ "@id": "http://" + baseURL }],
+			"@id": resource + "ranking",
+			[ontology + "fromSystem"]: [{ "@id": "http://" + baseURL }],
 		},
 		{
-			"@id": vocab + "query",
-			"http://example.com#appliedTo": [{ "@id": "http://" + baseURL }]
+			"@id": resource + "query",
+			[ontology + "appliedTo"]: [{ "@id": "http://" + baseURL }]
 		},
 		{
-			"@id": vocab + "query",
-			"http://example.com#produces": [{ "@id": vocab + "ranking" }]
+			"@id": resource + "query",
+			[ontology + "produces"]: [{ "@id": resource + "ranking" }]
 		},
 		{
-			"@id": vocab + "ranking",
-			"http://example.com#hasResult": [{ "@id": vocab + "resultList" }]
+			"@id": resource + "ranking",
+			[ontology + "hasResult"]: [{ "@id": resource + "resultList" }]
 		},
 		{
-			"@id": vocab + "resultList",
-			"http://example.com#belongsTo": [{ "@id": vocab + "ranking" }]
+			"@id": resource + "resultList",
+			[ontology + "belongsTo"]: [{ "@id": resource + "ranking" }]
 		}
 	);
 
 	const results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
 	/**
-	 * Data for Result
+	 * Data for Rankings
 	 */
 
 	let BNODE_INDEX = 1;
-	let RESULT_INDEX = 1;
+	let RANK_INDEX = 1;
 
 	results.forEach((result) => {
 
@@ -244,23 +249,26 @@ function getData() {
 
 		data.push({
 			//"@id": vocab + "result" + RESULT_INDEX,
-			"@id": resultURL + "#result" + RESULT_INDEX,
-			"@type": vocab + "Result",
+			"@id": resultURL,
+			"http://www.w3.org/2000/01/rdf-schema#label": [{
+				"@value": "rank" + RANK_INDEX,
+			}],
+			"@type": ontology + "Result",
 			"https://schema.org/title": title,
 			"https://schema.org/url": resultURL,
-			"http://example.com#authors": authors,
-			"http://example.com#publicationYear": publicationYear,
-			"http://example.com#description": "?",
-			"http://example.com#n_citations": 0,
+			[ontology + "authors"]: authors,
+			[ontology + "publicationYear"]: publicationYear,
 		});
 
-		RESULT_INDEX++;
+		RANK_INDEX++;
 
-		const bnodeString = vocab + "_bnode" + BNODE_INDEX;
+		//const bnodeString = vocab + "_bnode" + BNODE_INDEX;
+		const bnodeString = "_bnode" + BNODE_INDEX;
 
 		if (BNODE_INDEX === results.length) {
 			const PREV_BNODE_INDEX = BNODE_INDEX - 1;
-			const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
+			//const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
+			const prev_node = "_bnode" + PREV_BNODE_INDEX;
 			data.push({
 				"@id": prev_node,
 				"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
@@ -276,14 +284,15 @@ function getData() {
 
 		if (BNODE_INDEX === 1) {
 			data.push({
-				"@id": vocab + "resultList",
+				"@id": resource + "resultList",
 				"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
 				"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": bnodeString
 			});
 		}
 		else {
 			const PREV_BNODE_INDEX = BNODE_INDEX - 1;
-			const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
+			//const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
+			const prev_node = "_bnode" + PREV_BNODE_INDEX;
 			data.push({
 				"@id": prev_node,
 				"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
@@ -298,6 +307,13 @@ function getData() {
 	//    console.log('The file has been saved!');
 	//});
 
-	return JSON.stringify(data);
+	const outputData = {
+		"@context": {
+			"CRO": vocab,
+		},
+		"@graph": [data]
+	}
+	
+	return JSON.stringify(outputData);
 	//return "Data has been collected";
 }

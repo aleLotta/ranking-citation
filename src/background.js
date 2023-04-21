@@ -9,11 +9,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.cmd === 'CREATE RO') {
 
 
-		chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', 'orcid'], function (items) {
+		chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', 'orcid', 'keywords'], function (items) {
 			const ACCESS_TOKEN = items.accessToken;
 			const ZENODO_USER = items.firstName + " " + items.lastName;
 			const AFFILIATION = items.affiliation;
 			const ORCID = items.orcid;
+			const NEW_KEYWORDS = items.keywords;
 			//console.log("--" + ACCESS_TOKEN + " " + ZENODO_USER + " " + AFFILIATION + "--");
 
 
@@ -124,11 +125,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			//let ZENODO_USER = "Alessandro Lotta";
 			//let AFFILIATION = "Unipd";
 
-
-			const TITLE = "Ranking snapshot for the query \"" + request.payload.title.split("-")[0].trim().toUpperCase() +
-				"\" performed on " + request.payload.title.split("-")[1].trim();
-			const DESCRIPTION = "This is a deposit created via the Zenodo API";
+			const queryText = request.payload.title.split("-")[0].trim().toUpperCase();
+			const searchSystem = request.payload.title.split("-")[1].trim();
 			const pub_date = new Date().getDate;
+
+			const TITLE = "Ranking snapshot for the query \"" + queryText + "\" performed on " + searchSystem;
+			const NOTES = "This citation is created using the Unipd Citation Ranking Tool. \n" +
+				"Available at https://citationranking.dei.unipd.it \n" +
+				"Created by professor Gianmaria Silvello and student Alessandro Lotta";
+			const DESCRIPTION = "This is a deposit containing the citation captured by the user " + ZENODO_USER + " from affiliation " + AFFILIATION +
+				" on date " + new Date().getDate() + " who executed the search query: \"" + queryText + "\" on the engine " + searchSystem + ".\n" +
+				"The data contained in the results obtained from the search query is then saved in the output-data.jsonld file. " +
+				"The deposit also contains a screenshot of the results in PNG format and the metadata for the Research Object Crate in JSON format.\n" +
+				NOTES;
+
+			let keywords = ["Unipd Citation Ranking Tool", queryText, searchSystem, "Ranking Snapshot"];
+			for (let el of NEW_KEYWORDS) {
+				keywords.push(el);
+			}
 
 			const depositMetadata = {
 				metadata: {
@@ -136,7 +150,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					upload_type: "dataset",
 					publication_date: pub_date,
 					description: DESCRIPTION,
-					keywords: ["RO-Crate", "metadata", "Snapshot", "Search Result"],
+					language: 'eng',
+					notes: NOTES,
+					keywords: keywords,
 					creators: [
 						{
 							name: ZENODO_USER,
