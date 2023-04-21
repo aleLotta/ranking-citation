@@ -73,7 +73,9 @@ function getData() {
 	/**
 	 * Data for Ranking Snapshot
 	 */
-	const timestamp = new Date();
+	const date = new Date();	
+	const dateString = date.toString().split("(")[0].trim();
+	const timestamp = Date.now();
 
 	/**
 	 * Data for System
@@ -90,11 +92,15 @@ function getData() {
 	 */
 	const queryText = pageTitle.split('-')[0];
 	const language = URL.split('?')[1].split('&')[0].slice(3);
+	const patentsFilter = document.getElementsByClassName('gs_cb_gen gs_in_cb gs_md_li')[0];
 	const allFilters = document.querySelectorAll('.gs_ind.gs_bdy_sb_sel');
 	const filters = [];
 	for (let j = 0; j < allFilters.length; j++) {
 		filters.push(allFilters[j].innerText);
 	}
+	if (patentsFilter.getAttribute("aria-checked")) {
+		filters.push("Include patents");
+	} else { filters.push("Don't include patents"); }
 
 	// define Data and Object Properties
 	data.push(
@@ -125,7 +131,7 @@ function getData() {
 
 
 		{
-			"@id": ontology + "timestamp",
+			"@id": ontology + "date",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
@@ -153,6 +159,10 @@ function getData() {
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
+			"@id": "https://schema.org/url",
+			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+		},
+		{
 			"@id": ontology + "authors",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
@@ -170,17 +180,30 @@ function getData() {
 		},
 	);
 
+	let rankingId = "ranking[" + timestamp + "]"
+	rankingId = hashCode(rankingId);
+	let queryId = queryText.toLowerCase().trim().replaceAll(" ", "-") + "[" + timestamp + "]";
+	queryId = hashCode(queryId);
+	let resultListId = "resultList[" + timestamp + "]";
+	resultListId = hashCode(resultListId);
+
 	// Add individuals to the model
 	data.push({
-		"@id": resource + "ranking",
+		"@id": resource + rankingId,
+		"http://www.w3.org/2000/01/rdf-schema#label": [{
+			"@value": "ranking[" + dateString + "]"
+		}],
 		"@type": ontology + "RankingSnapshot",
-		[ontology + "timestamp"]: timestamp
+		[ontology + "date"]: date
 	}, {
 		"@id": "http://" + baseURL,
 		"@type": ontology + "System",
 		[ontology + "name"]: name
 	}, {
-		"@id": resource + "query",
+		"@id": resource + queryId,
+		"http://www.w3.org/2000/01/rdf-schema#label": [{
+			"@value": queryText.toLowerCase().trim().replaceAll(" ", "-"),
+		}],
 		"@type": ontology + "SearchQuery",
 		[ontology + "queryText"]: queryText,
 		[ontology + "language"]: language,
@@ -189,31 +212,34 @@ function getData() {
 		"@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#List",
 		"@type": "http://www.w3.org/2002/07/owl#Class"
 	}, {
-		"@id": resource + "resultList",
+		"@id": resource + resultListId,
+		"http://www.w3.org/2000/01/rdf-schema#label": [{
+			"@value": "resultList[" + dateString + "]",
+		}],
 		"@type": "http://www.w3.org/1999/02/22-rdf-syntax-ns#List"
 	});
 
 	// add Object Properties to the model
 	data.push(
 		{
-			"@id": resource + "ranking",
+			"@id": resource + rankingId,
 			[ontology + "fromSystem"]: [{ "@id": "http://" + baseURL }],
 		},
 		{
-			"@id": resource + "query",
+			"@id": resource + queryId,
 			[ontology + "appliedTo"]: [{ "@id": "http://" + baseURL }]
 		},
 		{
-			"@id": resource + "query",
-			[ontology + "produces"]: [{ "@id": resource + "ranking" }]
+			"@id": resource + queryId,
+			[ontology + "produces"]: [{ "@id": resource + rankingId }]
 		},
 		{
-			"@id": resource + "ranking",
-			[ontology + "hasResult"]: [{ "@id": resource + "resultList" }]
+			"@id": resource + rankingId,
+			[ontology + "hasResult"]: [{ "@id": resource + resultListId }]
 		},
 		{
-			"@id": resource + "resultList",
-			[ontology + "belongsTo"]: [{ "@id": resource + "ranking" }]
+			"@id": resource + resultListId,
+			[ontology + "belongsTo"]: [{ "@id": resource + rankingId }]
 		}
 	);
 
@@ -239,8 +265,8 @@ function getData() {
 		const linked_authors = result.querySelectorAll('.gs_a>a');
 		const authors = splitContext[0].split(',').map((element) => {
 			element = element.trim();
-			element = element.replace('…', '');
-			return element.replace('&nbsp', '')
+			element = element.replaceAll('…', '');
+			return element.replaceAll('&nbsp', '')
 		});
 
 		// see if it can be usefull to have the number of citations
@@ -284,7 +310,7 @@ function getData() {
 
 		if (BNODE_INDEX === 1) {
 			data.push({
-				"@id": resource + "resultList",
+				"@id": resource + resultListId,
 				"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
 				"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": bnodeString
 			});
@@ -307,13 +333,21 @@ function getData() {
 	//    console.log('The file has been saved!');
 	//});
 
-	const outputData = {
+	const outputData = [{
 		"@context": {
 			"CRO": vocab,
 		},
 		"@graph": [data]
-	}
-	
+	}];
+
 	return JSON.stringify(outputData);
 	//return "Data has been collected";
 }
+
+function hashCode(s) {
+	var h = 0, l = s.length, i = 0;
+	if ( l > 0 )
+	  while (i < l)
+		h = (h << 5) - h + s.charCodeAt(i++) | 0;
+	return h;
+  };
