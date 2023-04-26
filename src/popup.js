@@ -117,7 +117,12 @@ document.addEventListener("DOMContentLoaded", function (event) {
 					const publisher = request.payload.publisher;
 					const version = request.payload.version;
 
-					const citation = creators + ". " + title + " " + publication_date + ". " + publisher +
+					let creatorsText = "";
+					for (let author of creators){
+						creatorsText += author + ", "
+					}
+					creatorsText = creatorsText.slice(0,-2);
+					const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
 						". (Version " + version + "). ";
 
 					chrome.storage.sync.set({ [depositDOI]: citation }).then(() => {

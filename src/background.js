@@ -9,14 +9,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.cmd === 'CREATE RO') {
 
 
-		chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', 'orcid', 'keywords'], function (items) {
+		chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', 'orcid', 'keywords', 'otherAuthors'], function (items) {
 			const ACCESS_TOKEN = items.accessToken;
 			const ZENODO_USER = items.firstName + " " + items.lastName;
 			const AFFILIATION = items.affiliation;
 			const ORCID = items.orcid;
 			const NEW_KEYWORDS = items.keywords;
-			//console.log("--" + ACCESS_TOKEN + " " + ZENODO_USER + " " + AFFILIATION + "--");
 
+			const otherAuthors = items.otherAuthors.split(";");
 
 			// Log message coming from the `request` parameter
 			const data = request.payload.message;
@@ -144,6 +144,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				keywords.push(el);
 			}
 
+			let depositAuthors = [{
+				name: ZENODO_USER,
+				affiliation: AFFILIATION,
+				orcid: ORCID
+			}];
+
+			// Push other authors
+			for (let author of otherAuthors) {
+				if (author != '') {
+					depositAuthors.push(
+						{
+							name: author.split(',')[0],
+							affiliation: author.split(',')[2],
+							//orcid: author.split(',')[1]
+							orcid: "https://orcid.org/0000-0002-1825-0097"
+						}
+					);
+				}
+			}
+
+			console.log(depositAuthors);
+
 			const depositMetadata = {
 				metadata: {
 					title: TITLE,
@@ -153,13 +175,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					language: 'eng',
 					notes: NOTES,
 					keywords: keywords,
-					creators: [
-						{
-							name: ZENODO_USER,
-							affiliation: AFFILIATION,
-							orcid: ORCID
-						},
-					],
+					creators: depositAuthors,
 				},
 			};
 
@@ -242,7 +258,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					//publisher: "Zenodo",
 					//version: data.metadata.version
 					depositDOI: "10.5281/zenodo.7796232",
-					creators: "Carbon, Seth, & Mungall, Chris",
+					creators: ["Carbon", "Seth", "Mungall", "Chris"],
 					title: "Gene Ontology Data Archive [Data set]",
 					publication_date: "2023-04-01",
 					publisher: "Zenodo",
@@ -259,7 +275,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					//publisher: "Zenodo",
 					//version: data.metadata.version
 					depositDOI: "10.5281/zenodo.7812326",
-					creators: "Banda, Juan M., Tekumalla, Ramya, Wang",
+					creators: ["Banda", "Juan M.", "Tekumalla", "Ramya", "Wang"],
 					title: "A large-scale COVID-19 Twitter chatter dataset for open scientific research - an international collaboration [Data set]",
 					publication_date: "2023",
 					publisher: "Zenodo",
