@@ -69,7 +69,7 @@ function getData() {
 	/**
 	 * Data for Ranking Snapshot
 	 */
-	const date = new Date();	
+	const date = new Date();
 	const dateString = date.toString().split("(")[0].trim();
 	const timestamp = Date.now();
 
@@ -98,6 +98,16 @@ function getData() {
 		filters.push("Include patents");
 	} else { filters.push("Don't include patents"); }
 
+	// Data for User Settings
+	const loginElement = document.getElementById("gs_hdr_act_i");
+	let isLogged = false;
+	if (loginElement) isLogged = true;
+	const userData = navigator.userAgentData;
+	const userOS = userData.platform;
+	const browser = userData.brands[1].brand;
+	const browserVersion = userData.brands[1].version;
+	const browserLanguage = navigator.language;
+
 	// define Data and Object Properties
 	data.push(
 		{
@@ -122,6 +132,10 @@ function getData() {
 		},
 		{
 			"@id": ontology + "belongsTo",
+			"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
+		},
+		{
+			"@id": ontology + "hasSettings",
 			"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
 		},
 
@@ -171,7 +185,27 @@ function getData() {
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 		{
-			"@id": ontology + "n_citations",
+			"@id": ontology + "isLogged",
+			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+		},
+		{
+			"@id": ontology + "country",
+			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+		},
+		{
+			"@id": ontology + "browser",
+			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+		},
+		{
+			"@id": ontology + "browserVersion",
+			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+		},
+		{
+			"@id": ontology + "browserLanguage",
+			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+		},
+		{
+			"@id": ontology + "userOS",
 			"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 		},
 	);
@@ -182,6 +216,8 @@ function getData() {
 	queryId = hashCode(queryId);
 	let resultListId = "resultList[" + timestamp + "]";
 	resultListId = hashCode(resultListId);
+	let userSetId = "userSettings[" + timestamp + "]";
+	userSetId = hashCode(userSetId);
 
 	// Add individuals to the model
 	data.push({
@@ -213,6 +249,17 @@ function getData() {
 			"@value": "resultList[" + dateString + "]",
 		}],
 		"@type": "http://www.w3.org/1999/02/22-rdf-syntax-ns#List"
+	}, {
+		"@id": resource + userSetId,
+		"http://www.w3.org/2000/01/rdf-schema#label": [{
+			"@value": "userSettings[" + dateString + "]",
+		}],
+		"@type": ontology + "UserSettings",
+		[ontology + "isLogged"]: isLogged,
+		[ontology + "browserLanguage"]: browserLanguage,
+		[ontology + "browser"]: browser,
+		[ontology + "browserVersion"]: browserVersion,
+		[ontology + "userOS"]: userOS,
 	});
 
 	// add Object Properties to the model
@@ -236,6 +283,10 @@ function getData() {
 		{
 			"@id": resource + resultListId,
 			[ontology + "belongsTo"]: [{ "@id": resource + rankingId }]
+		},
+		{
+			"@id": resource + "http://" + baseURL,
+			[ontology + "hasSettings"]: [{ "@id": resource + userSetId }]
 		}
 	);
 
@@ -330,8 +381,8 @@ function getData() {
 
 function hashCode(s) {
 	var h = 0, l = s.length, i = 0;
-	if ( l > 0 )
-	  while (i < l)
-		h = (h << 5) - h + s.charCodeAt(i++) | 0;
+	if (l > 0)
+		while (i < l)
+			h = (h << 5) - h + s.charCodeAt(i++) | 0;
 	return h;
-  };
+};
