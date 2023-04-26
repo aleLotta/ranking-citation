@@ -21,28 +21,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			// Log message coming from the `request` parameter
 			const data = request.payload.message;
 
-			//const imgScreenShot = request.payload.image;
-			//let imgScreenShot;
-			//chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-			//	imgScreenShot = request.image;
-			//	console.log(imgScreenShot);
-			//
-			//	imgScreenShot.toBlob(function (blob) {
-			//		console.log(blob);
-			//	})
-			//});
-
-			// console.log(data);
-			// Send a response message
-			// sendResponse({
-			// 	message,
-			// });
-
-			// Creation of the Research Object Crate
-			//const { ROCrate } = require('ro-crate');
-			//const crate = new ROCrate();
-			//console.log('Imported ro-crate correctly');
-
 			const currentTimeStamp = new Date();
 
 			const user_id = ORCID;
@@ -268,12 +246,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			chrome.runtime.sendMessage({
 				message: "DEPOSIT DOI",
 				payload: {
-					//depositDOI: data.doi,
-					//creators: data.metadata.creators,
-					//title: data.metadata.title,
-					//publication_date: data.metadata.publication_date,
-					//publisher: "Zenodo",
-					//version: data.metadata.version
 					depositDOI: "10.5281/zenodo.7812326",
 					creators: ["Banda", "Juan M.", "Tekumalla", "Ramya", "Wang"],
 					title: "A large-scale COVID-19 Twitter chatter dataset for open scientific research - an international collaboration [Data set]",

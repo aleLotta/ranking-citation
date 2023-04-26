@@ -29,13 +29,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
 						// Save json-ld file
 						var blob = new Blob([response.data], { type: "application/ld+json;charset=utf-8" });
 
-						//var url = URL.createObjectURL(response.image);
-						//chrome.downloads.download({
-						//  url: url,
-						//  filename: "output.jsonld",
-						//  conflictAction: "overwrite"
-						//});
-
 						let rocrateData;
 						let DOI;
 
@@ -54,55 +47,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
 							}
 						);
 
-						/*let butDirectory = document.createElement('button');
-						butDirectory.id = "butDirectory";
-						butDirectory.innerHTML = "Open";
-			
-						butDirectory.addEventListener('click', async () => {
-			
-						  // write file with gathered data
-						  let options = {
-							types: [
-							  {
-								description: "JSON-LD File",
-								accept: {
-								  "application/ld+json": [".jsonld"],
-								}
-							  }
-							],
-							suggestedName: 'output-data.jsonld'
-						  };
-			
-						  let handle = await window.showSaveFilePicker(options);
-						  let writable = await handle.createWritable();
-			
-						  await writable.write(response.data);
-						  await writable.close();
-			
-			
-						  // write RO-Crate file
-						  options = {
-							types: [
-							  {
-								description: "RO-Crate File",
-								accept: {
-								  "application/json": [".json"],
-								}
-							  }
-							],
-							suggestedName: 'ro-crate-metadata.json'
-						  };
-			
-						  handle = await window.showSaveFilePicker(options);
-						  writable = await handle.createWritable();
-			
-						  await writable.write(JSON.stringify(rocrateData, null, 2));
-						  await writable.close();
-			
-						  return handle;
-						});
-			
-						document.getElementById('content').append(butDirectory);*/
 					});
 				});
 			});

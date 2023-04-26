@@ -13,7 +13,6 @@ chrome.runtime.onMessage.addListener(
 			console.log("Capturing Data");
 			const someData = getData();
 
-			//sendResponse({ data: someData, image: pageScreenshot });
 			sendResponse({ data: someData, title: pageTitle });
 		}
 	}
@@ -33,7 +32,6 @@ function getFullScreen(ACCESS_TOKEN, depositId) {
 
 	html2canvas(document.body).then(function (canvas) {
 
-		//var blobData = canvasToBlob(canvas);
 		canvas.toBlob(function (blob) {
 
 			// create File variable for screenshot
@@ -59,8 +57,6 @@ function getFullScreen(ACCESS_TOKEN, depositId) {
 					console.error("Error uploading file:", error);
 				});
 		});
-
-		// chrome.runtime.sendMessage({ image: blobData });
 
 	})
 
@@ -260,18 +256,12 @@ function getData() {
 		const tempString = splitContext[splitContext.length - 2];
 		const publicationYear = parseInt(tempString.slice(tempString.length - 5, tempString.length - 1));
 
-		// get the authors, but only the ones that have a link
-		// check if it is possible to have also the others 
 		const linked_authors = result.querySelectorAll('.gs_a>a');
 		const authors = splitContext[0].split(',').map((element) => {
 			element = element.trim();
 			element = element.replaceAll('…', '');
 			return element.replaceAll('&nbsp', '')
 		});
-
-		// see if it can be usefull to have the number of citations
-		// const n_citations;
-
 
 		data.push({
 			//"@id": vocab + "result" + RESULT_INDEX,
@@ -328,11 +318,6 @@ function getData() {
 		BNODE_INDEX++;
 	});
 
-	//fs.writeFile('../data.jsonld', JSON.stringify(data, null, 2), (err) => {
-	//    if (err) throw err;
-	//    console.log('The file has been saved!');
-	//});
-
 	const outputData = [{
 		"@context": {
 			"CRO": vocab,
@@ -341,7 +326,6 @@ function getData() {
 	}];
 
 	return JSON.stringify(outputData);
-	//return "Data has been collected";
 }
 
 function hashCode(s) {
