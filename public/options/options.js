@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
         const item = document.createElement('div');
         item.id = 'keyword-stored';
         const keywordText = document.createElement("span");
-        keywordText.style = "margin-right:5px"
+        keywordText.style = "margin-right: 5px"
         keywordText.textContent = keyword;
         item.appendChild(keywordText);
         list.appendChild(item);
@@ -58,6 +58,13 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
     document.getElementById("add-keyword").addEventListener('click', addKeyword);
 
+    // Get n of pages to capture
+    chrome.storage.sync.get(['nPages'], function (items) {
+        if (Object.keys(items).length !== 0) {
+            const nPages = items.nPages;
+            document.getElementById("n-pages").value = nPages;
+        }
+    });
 });
 
 function addAuthor() {
@@ -136,6 +143,7 @@ function saveOptions(event) {
     var affiliation = document.getElementById("affiliation").value;
     var orcid = document.getElementById("orcid").value;
     var keywordsElement = document.getElementsByClassName("keyText");
+    var nPages = document.getElementById("n-pages").value;
 
     var keywords = [];
     for (let element of keywordsElement) {
@@ -148,7 +156,8 @@ function saveOptions(event) {
         lastName: lastName,
         affiliation: affiliation,
         orcid: orcid,
-        keywords: keywords
+        keywords: keywords,
+        nPages: nPages,
     }, function () {
         // Notify the user that the options were saved.
         var status = document.getElementById('status');
@@ -156,11 +165,13 @@ function saveOptions(event) {
         document.getElementsByTagName("fieldset")[0].style = "border: 4px solid green;";
         document.getElementsByTagName("fieldset")[1].style = "border: 4px solid green;";
         document.getElementsByTagName("fieldset")[2].style = "border: 4px solid green;";
+        document.getElementsByTagName("fieldset")[3].style = "border: 4px solid green;";
         setTimeout(function () {
             status.textContent = '';
             document.getElementsByTagName("fieldset")[0].style = "border: 2px solid #ccc;";
             document.getElementsByTagName("fieldset")[1].style = "border: 2px solid #ccc;";
             document.getElementsByTagName("fieldset")[2].style = "border: 2px solid #ccc;";
+            document.getElementsByTagName("fieldset")[3].style = "border: 2px solid #ccc;";
         }, 1500);
     });
 }
