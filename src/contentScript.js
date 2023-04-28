@@ -58,7 +58,7 @@ chrome.storage.sync.get(['nPages'], function (items) {
 
 
 					{
-						"@id": ontology + "date",
+						"@id": ontology + "dateTime",
 						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 					},
 					{
@@ -184,7 +184,7 @@ chrome.storage.sync.get(['nPages'], function (items) {
 							"@value": "ranking[" + dateString + "]"
 						}],
 						"@type": ontology + "RankingSnapshot",
-						[ontology + "date"]: date
+						[ontology + "dateTime"]: date
 					},
 					{
 						"@id": "http://" + baseURL,
@@ -299,16 +299,16 @@ chrome.storage.sync.get(['nPages'], function (items) {
 						RANK_INDEX++;
 
 						//const bnodeString = vocab + "_bnode" + BNODE_INDEX;
-						const bnodeString = "_bnode" + BNODE_INDEX;
+						const bnodeString = "_:bnode" + BNODE_INDEX;
 
 						if (BNODE_INDEX === (results.length * nPages)) {
 							const PREV_BNODE_INDEX = BNODE_INDEX - 1;
 							//const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-							const prev_node = "_bnode" + PREV_BNODE_INDEX;
+							const prev_node = "_:bnode" + PREV_BNODE_INDEX;
 							data.push({
 								"@id": prev_node,
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"
+								"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": { "@id": resultURL },
+								"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": { "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" }
 							});
 							return;
 						}
@@ -321,18 +321,18 @@ chrome.storage.sync.get(['nPages'], function (items) {
 						if (BNODE_INDEX === 1) {
 							data.push({
 								"@id": resource + resultListId,
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": bnodeString
+								"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": { "@id": resultURL },
+								"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": { "@id": bnodeString }
 							});
 						}
 						else {
 							const PREV_BNODE_INDEX = BNODE_INDEX - 1;
 							//const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-							const prev_node = "_bnode" + PREV_BNODE_INDEX;
+							const prev_node = "_:bnode" + PREV_BNODE_INDEX;
 							data.push({
 								"@id": prev_node,
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": bnodeString
+								"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": { "@id": resultURL },
+								"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": { "@id": bnodeString }
 							});
 						}
 						BNODE_INDEX++;
@@ -345,7 +345,7 @@ chrome.storage.sync.get(['nPages'], function (items) {
 					else document.getElementsByClassName("gs_ico gs_ico_nav_next")[0].click();
 					currPage++;
 
-					var delayInMilliseconds = 1200;
+					let delayInMilliseconds = 1200;
 
 					setTimeout(function () {
 						console.log("ok");
@@ -363,7 +363,6 @@ chrome.storage.sync.get(['nPages'], function (items) {
 				const someData = JSON.stringify(outputData);
 				sendResponse({ data: someData, title: pageTitle });
 
-				//sendResponse({ data: someData, title: pageTitle });
 			}
 		}
 	);
@@ -413,7 +412,7 @@ function getFullScreen(ACCESS_TOKEN, depositId) {
 
 }
 
-function getData() {
+/*function getData() {
 
 	if (document.querySelector("#gs_n > center > table > tbody > tr > td:nth-child(2) > a")) {
 		document.querySelector("#gs_n > center > table > tbody > tr > td:nth-child(2) > a").click();
@@ -458,7 +457,7 @@ function getData() {
 
 
 			{
-				"@id": ontology + "date",
+				"@id": ontology + "dateTime",
 				"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
 			},
 			{
@@ -527,24 +526,23 @@ function getData() {
 			},
 		);
 
-		/**
-		 * Data for Ranking Snapshot
-		 */
+		
+		// Data for Ranking Snapshot
+		 
 		const date = new Date();
 		const dateString = date.toString().split("(")[0].trim();
 		const timestamp = Date.now();
 
-		/**
-		 * Data for System
-		 */
+		// Data for System
+		
 		const URL = document.location.href;
 		const baseURL = URL.split('/')[2];
 		pageTitle = document.querySelector('title').innerText;
 		const name = pageTitle.split('-')[1].slice(1);
 
-		/**
-		 * Data for Search Query 
-		 */
+		
+		// Data for Search Query 
+		
 		const queryText = pageTitle.split('-')[0];
 		const language = URL.split('?')[1].split('&')[0].slice(3);
 		const patentsFilter = document.getElementsByClassName('gs_cb_gen gs_in_cb gs_md_li')[0];
@@ -584,7 +582,7 @@ function getData() {
 					"@value": "ranking[" + dateString + "]"
 				}],
 				"@type": ontology + "RankingSnapshot",
-				[ontology + "date"]: date
+				[ontology + "dateTime"]: date
 			},
 			{
 				"@id": "http://" + baseURL,
@@ -663,10 +661,9 @@ function getData() {
 		while (true) {
 
 			const results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
-			/**
-			 * Data for Results
-			 */
-
+			
+			// Data for Results
+			 
 			results.forEach((result) => {
 
 				const title = result.querySelector('h3>a').innerText;
@@ -699,16 +696,16 @@ function getData() {
 				RANK_INDEX++;
 
 				//const bnodeString = vocab + "_bnode" + BNODE_INDEX;
-				const bnodeString = "_bnode" + BNODE_INDEX;
+				const bnodeString = "_:bnode" + BNODE_INDEX;
 
 				if (BNODE_INDEX === (results.length * nPages)) {
 					const PREV_BNODE_INDEX = BNODE_INDEX - 1;
 					//const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-					const prev_node = "_bnode" + PREV_BNODE_INDEX;
+					const prev_node = "_:bnode" + PREV_BNODE_INDEX;
 					data.push({
 						"@id": prev_node,
-						"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
-						"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"
+						"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": { "@id": resultURL },
+						"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": { "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" }
 					});
 					return;
 				}
@@ -721,18 +718,18 @@ function getData() {
 				if (BNODE_INDEX === 1) {
 					data.push({
 						"@id": resource + resultListId,
-						"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
-						"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": bnodeString
+						"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": { "@id": resultURL },
+						"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": { "@id": bnodeString }
 					});
 				}
 				else {
 					const PREV_BNODE_INDEX = BNODE_INDEX - 1;
 					//const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-					const prev_node = "_bnode" + PREV_BNODE_INDEX;
+					const prev_node = "_:bnode" + PREV_BNODE_INDEX;
 					data.push({
 						"@id": prev_node,
-						"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": resultURL,
-						"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": bnodeString
+						"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": { "@id": resultURL },
+						"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": { "@id": bnodeString }
 					});
 				}
 				BNODE_INDEX++;
@@ -758,9 +755,10 @@ function getData() {
 	});
 
 }
+*/
 
 function hashCode(s) {
-	var h = 0, l = s.length, i = 0;
+	let h = 0, l = s.length, i = 0;
 	if (l > 0)
 		while (i < l)
 			h = (h << 5) - h + s.charCodeAt(i++) | 0;

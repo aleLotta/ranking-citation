@@ -137,15 +137,15 @@ function uploadAuthor() {
 function saveOptions(event) {
     event.preventDefault();
     console.log("saving options");
-    var accessToken = document.getElementById("atoken").value;
-    var firstName = document.getElementById("fname").value;
-    var lastName = document.getElementById("lname").value;
-    var affiliation = document.getElementById("affiliation").value;
-    var orcid = document.getElementById("orcid").value;
-    var keywordsElement = document.getElementsByClassName("keyText");
-    var nPages = document.getElementById("n-pages").value;
+    let accessToken = document.getElementById("atoken").value;
+    let firstName = document.getElementById("fname").value;
+    let lastName = document.getElementById("lname").value;
+    let affiliation = document.getElementById("affiliation").value;
+    let orcid = document.getElementById("orcid").value;
+    let keywordsElement = document.getElementsByClassName("keyText");
+    let nPages = document.getElementById("n-pages").value;
 
-    var keywords = [];
+    let keywords = [];
     for (let element of keywordsElement) {
         keywords.push(element.innerText);
     }
@@ -160,7 +160,7 @@ function saveOptions(event) {
         nPages: nPages,
     }, function () {
         // Notify the user that the options were saved.
-        var status = document.getElementById('status');
+        let status = document.getElementById('status');
         status.textContent = 'Options saved.';
         document.getElementsByTagName("fieldset")[0].style = "border: 4px solid green;";
         document.getElementsByTagName("fieldset")[1].style = "border: 4px solid green;";

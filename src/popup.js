@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 	// implement the fact that this is returned if the page is not the correct URL
 	// I can use a message from the content-script
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-		var currentUrl = tabs[0].url;
+		let currentUrl = tabs[0].url;
 
 		if (currentUrl.match('https://scholar.google.com/scholar*')) {
 
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 						//document.getElementById('content').appendChild(para);
 
 						// Save json-ld file
-						var blob = new Blob([response.data], { type: "application/ld+json;charset=utf-8" });
+						let blob = new Blob([response.data], { type: "application/ld+json;charset=utf-8" });
 
 						let rocrateData;
 						let DOI;
@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 			});
 
 			//chrome.storage.sync.clear(function () {
-			//	var error = chrome.runtime.lastError;
+			//	let error = chrome.runtime.lastError;
 			//	if (error) {
 			//		console.error(error);
 			//	}
@@ -110,10 +110,10 @@ document.addEventListener("DOMContentLoaded", function (event) {
 		citHeading.innerHTML = "Your Citations";
 		document.getElementById("content").appendChild(citHeading);
 		chrome.storage.sync.get(null, function (items) {
-			var allKeys = Object.keys(items);
+			let allKeys = Object.keys(items);
 			const regex = /^\d+/;
-			for (var i = 0; i < allKeys.length; i++) {
-				var key = allKeys[i];
+			for (let i = 0; i < allKeys.length; i++) {
+				let key = allKeys[i];
 				if (regex.test(key)) {
 					updateCitations(key);
 				}
