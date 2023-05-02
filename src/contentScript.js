@@ -20,7 +20,6 @@ chrome.storage.sync.get(['nPages'], function (items) {
 				}
 
 				// Get n of pages to capture
-
 				const nPages = items.nPages;
 
 				data = [];
@@ -29,101 +28,123 @@ chrome.storage.sync.get(['nPages'], function (items) {
 				data.push(
 					{
 						"@id": vocab,
-						"@type": ["http://www.w3.org/2002/07/owl#Ontology"]
+						"@type": ["owl:Ontology"]
+					},
+
+					{
+						"@id": "cro:SearchResult",
+						"@type": ["owl:Class"]
 					},
 					{
-						"@id": ontology + "fromSystem",
-						"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
+						"@id": "cro:System",
+						"@type": ["owl:Class"]
 					},
 					{
-						"@id": ontology + "appliedTo",
-						"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
+						"@id": "cro:SearchQuery",
+						"@type": ["owl:Class"]
 					},
 					{
-						"@id": ontology + "produces",
-						"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
+						"@id": "cro:RankingSnapshot",
+						"@type": ["owl:Class"]
 					},
 					{
-						"@id": ontology + "hasResult",
-						"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
+						"@id": "cro:UserSettings",
+						"@type": ["owl:Class"]
+					},
+
+					{
+						"@id": "cro:fromSystem",
+						"@type": ["owl:ObjectProperty"]
 					},
 					{
-						"@id": ontology + "belongsTo",
-						"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
+						"@id": "cro:appliedTo",
+						"@type": ["owl:ObjectProperty"]
 					},
 					{
-						"@id": ontology + "hasSettings",
-						"@type": ["http://www.w3.org/2002/07/owl#ObjectProperty"]
+						"@id": "cro:produces",
+						"@type": ["owl:ObjectProperty"]
+					},
+					{
+						"@id": "cro:hasResult",
+						"@type": ["owl:ObjectProperty"]
+					},
+					{
+						"@id": "cro:belongsTo",
+						"@type": ["owl:ObjectProperty"]
+					},
+					{
+						"@id": "cro:hasSettings",
+						"@type": ["owl:ObjectProperty"]
 					},
 
 
 					{
-						"@id": ontology + "dateTime",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:dateTime",
+						"@type": "owl:DatatypeProperty"
+					},
+					/*{
+						"@id": "schema:name",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "https://schema.org/name",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:version",
+						"@type": "owl:DatatypeProperty"
+					},*/
+					{
+						"@id": "cro:queryText",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "version",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:language",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "queryText",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:filters",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "language",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "schema:title",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "filters",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "schema:url",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "https://schema.org/title",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:authors",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "https://schema.org/url",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:publicationYear",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "authors",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:description",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "publicationYear",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:isLogged",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "description",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:country",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "isLogged",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:browser",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "country",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:browserVersion",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "browser",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:browserLanguage",
+						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": ontology + "browserVersion",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
-					},
-					{
-						"@id": ontology + "browserLanguage",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
-					},
-					{
-						"@id": ontology + "userOS",
-						"@type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+						"@id": "cro:userOS",
+						"@type": "owl:DatatypeProperty"
 					},
 				);
 
@@ -180,49 +201,49 @@ chrome.storage.sync.get(['nPages'], function (items) {
 				data.push(
 					{
 						"@id": resource + rankingId,
-						"http://www.w3.org/2000/01/rdf-schema#label": [{
+						"rdfs:label": [{
 							"@value": "ranking[" + dateString + "]"
 						}],
-						"@type": ontology + "RankingSnapshot",
-						[ontology + "dateTime"]: date
+						"@type": "cro:RankingSnapshot",
+						"cro:dateTime": date
 					},
 					{
 						"@id": "http://" + baseURL,
-						"@type": ontology + "System",
-						[ontology + "name"]: name
+						"@type": "cro:System",
+						"cro:name": name
 					},
 					{
 						"@id": resource + queryId,
-						"http://www.w3.org/2000/01/rdf-schema#label": [{
+						"rdfs:label": [{
 							"@value": queryText.toLowerCase().trim().replaceAll(" ", "-"),
 						}],
-						"@type": ontology + "SearchQuery",
-						[ontology + "queryText"]: queryText,
-						[ontology + "language"]: language,
-						[ontology + "filters"]: filters
+						"@type": "cro:SearchQuery",
+						"cro:queryText": queryText,
+						"cro:language": language,
+						"cro:filters": filters
 					},
 					{
-						"@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#List",
-						"@type": "http://www.w3.org/2002/07/owl#Class"
+						"@id": "rdf:List",
+						"@type": "owl:Class"
 					},
 					{
 						"@id": resource + resultListId,
-						"http://www.w3.org/2000/01/rdf-schema#label": [{
+						"rdfs:label": [{
 							"@value": "resultList[" + dateString + "]",
 						}],
-						"@type": "http://www.w3.org/1999/02/22-rdf-syntax-ns#List"
+						"@type": "rdf:List"
 					},
 					{
 						"@id": resource + userSetId,
-						"http://www.w3.org/2000/01/rdf-schema#label": [{
+						"rdfs:label": [{
 							"@value": "userSettings[" + dateString + "]",
 						}],
-						"@type": ontology + "UserSettings",
-						[ontology + "isLogged"]: isLogged,
-						[ontology + "browserLanguage"]: browserLanguage,
-						[ontology + "browser"]: browser,
-						[ontology + "browserVersion"]: browserVersion,
-						[ontology + "userOS"]: userOS,
+						"@type": "cro:UserSettings",
+						"cro:isLogged": isLogged,
+						"cro:browserLanguage": browserLanguage,
+						"cro:browser": browser,
+						"cro:browserVersion": browserVersion,
+						"cro:userOS": userOS,
 					}
 				);
 
@@ -230,27 +251,27 @@ chrome.storage.sync.get(['nPages'], function (items) {
 				data.push(
 					{
 						"@id": resource + rankingId,
-						[ontology + "fromSystem"]: [{ "@id": "http://" + baseURL }],
+						"cro:fromSystem": [{ "@id": "http://" + baseURL }],
 					},
 					{
 						"@id": resource + queryId,
-						[ontology + "appliedTo"]: [{ "@id": "http://" + baseURL }]
+						"cro:appliedTo": [{ "@id": "http://" + baseURL }]
 					},
 					{
 						"@id": resource + queryId,
-						[ontology + "produces"]: [{ "@id": resource + rankingId }]
+						"cro:produces": [{ "@id": resource + rankingId }]
 					},
 					{
 						"@id": resource + rankingId,
-						[ontology + "hasResult"]: [{ "@id": resource + resultListId }]
+						"cro:hasResult": [{ "@id": resource + resultListId }]
 					},
 					{
 						"@id": resource + resultListId,
-						[ontology + "belongsTo"]: [{ "@id": resource + rankingId }]
+						"cro:belongsTo": [{ "@id": resource + rankingId }]
 					},
 					{
-						"@id": resource + "http://" + baseURL,
-						[ontology + "hasSettings"]: [{ "@id": resource + userSetId }]
+						"@id": "http://" + baseURL,
+						"cro:hasSettings": [{ "@id": resource + userSetId }]
 					}
 				);
 
@@ -286,14 +307,14 @@ chrome.storage.sync.get(['nPages'], function (items) {
 						data.push({
 							//"@id": vocab + "result" + RESULT_INDEX,
 							"@id": resultURL,
-							"http://www.w3.org/2000/01/rdf-schema#label": [{
+							"rdfs:label": [{
 								"@value": "rank" + RANK_INDEX,
 							}],
-							"@type": ontology + "SearchResult",
-							"https://schema.org/title": title,
-							"https://schema.org/url": resultURL,
-							[ontology + "authors"]: authors,
-							[ontology + "publicationYear"]: publicationYear,
+							"@type": "cro:SearchResult",
+							"schema:title": title,
+							"schema:url": resultURL,
+							"cro:authors": authors,
+							"cro:publicationYear": publicationYear,
 						});
 
 						RANK_INDEX++;
@@ -307,22 +328,22 @@ chrome.storage.sync.get(['nPages'], function (items) {
 							const prev_node = "_:bnode" + PREV_BNODE_INDEX;
 							data.push({
 								"@id": prev_node,
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": { "@id": resultURL },
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": { "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil" }
+								"rdf:first": { "@id": resultURL },
+								"rdf:rest": { "@id": "rdf:nil" }
 							});
 							return;
 						}
 
 						data.push({
 							"@id": bnodeString,
-							"@type": "http://www.w3.org/1999/02/22-rdf-syntax-ns#List"
+							"@type": "rdf:List"
 						});
 
 						if (BNODE_INDEX === 1) {
 							data.push({
 								"@id": resource + resultListId,
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": { "@id": resultURL },
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": { "@id": bnodeString }
+								"rdf:first": { "@id": resultURL },
+								"rdf:rest": { "@id": bnodeString }
 							});
 						}
 						else {
@@ -331,8 +352,8 @@ chrome.storage.sync.get(['nPages'], function (items) {
 							const prev_node = "_:bnode" + PREV_BNODE_INDEX;
 							data.push({
 								"@id": prev_node,
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#first": { "@id": resultURL },
-								"http://www.w3.org/1999/02/22-rdf-syntax-ns#rest": { "@id": bnodeString }
+								"rdf:first": { "@id": resultURL },
+								"rdf:rest": { "@id": bnodeString }
 							});
 						}
 						BNODE_INDEX++;
@@ -353,12 +374,17 @@ chrome.storage.sync.get(['nPages'], function (items) {
 
 				}
 
-				const outputData = [{
+				const outputData = {
 					"@context": {
-						"CRO": vocab,
+						"cro": ontology,
+						"@vocab": resource,
+						"schema": "https://schema.org/",
+						"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+						"rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+						"owl": "http://www.w3.org/2002/07/owl#"
 					},
 					"@graph": [data]
-				}];
+				};
 
 				const someData = JSON.stringify(outputData);
 				sendResponse({ data: someData, title: pageTitle });
