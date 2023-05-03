@@ -15,9 +15,9 @@ chrome.storage.sync.get(['nPages'], function (items) {
 				//const someData = getData();
 
 
-				if (document.querySelector("#gs_n > center > table > tbody > tr > td:nth-child(2) > a")) {
-					document.querySelector("#gs_n > center > table > tbody > tr > td:nth-child(2) > a").click();
-				}
+				//if (document.querySelector("#gs_n > center > table > tbody > tr > td:nth-child(2) > a")) {
+				//	document.querySelector("#gs_n > center > table > tbody > tr > td:nth-child(2) > a").click();
+				//}
 
 				// Get n of pages to capture
 				const nPages = items.nPages;
@@ -363,14 +363,16 @@ chrome.storage.sync.get(['nPages'], function (items) {
 						console.log("Done Capturing");
 						break;
 					}
-					else document.getElementsByClassName("gs_ico gs_ico_nav_next")[0].click();
+
+					//document.getElementsByClassName("gs_ico gs_ico_nav_next")[0].click();
 					currPage++;
 
-					let delayInMilliseconds = 1200;
-
+					/*let delayInMilliseconds = 1200;
+				
 					setTimeout(function () {
 						console.log("ok");
-					}, delayInMilliseconds);
+					}, delayInMilliseconds);*/
+
 
 				}
 
@@ -418,7 +420,7 @@ function getFullScreen(ACCESS_TOKEN, depositId) {
 			// Upload the screenshot file to the the deposit
 			formData.append("file", imgFile);
 
-			fetch(`https://zenodo.org/api/deposit/depositions/${depositId}/files`, {
+			fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/files`, {
 				method: "POST",
 				headers: {
 					Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -428,6 +430,33 @@ function getFullScreen(ACCESS_TOKEN, depositId) {
 				.then((response) => response.json())
 				.then((data) => {
 					console.log("File uploaded successfully:", data);
+
+					// post the deposit on Zenodo
+					fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/actions/publish`, {
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${ACCESS_TOKEN}`,
+						},
+					})
+						.then((response) => response.json())
+						.then((data) => {
+							console.log("Deposit published successfully:", data);
+
+							// send to popup for citation
+							chrome.runtime.sendMessage({
+								message: "DEPOSIT DATA",
+								payload: {
+									depositDOI: data.doi,
+									creators: data.metadata.creators,
+									title: data.metadata.title,
+									publication_date: data.metadata.publication_date,
+									publisher: "Zenodo"
+								}
+							})
+						})
+						.catch((error) => {
+							console.error("Error publishing deposit:", error);
+						});
 				})
 				.catch((error) => {
 					console.error("Error uploading file:", error);

@@ -99,20 +99,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			// Upload to Zenodo
 			// NB: this needs to have deposit:write access
 			//let ACCESS_TOKEN = '1Rgx8cybYk1HwgqPFFlt0B9jsmPy5UKynS9lAUnswT6QjPVOBX6R0N4e5k9x';
+			//let SANDBOX_ACCESS_TOKEN = 'gIMBAgJMUri3Xld9mTkjQxn7r0doszKXw6MlfGWZaG6FmnO2pnKCpggK29D3';
 			//let ORCID = 'https://orcid.org/0009-0009-5047-606X'
 			//let ZENODO_USER = "Alessandro Lotta";
 			//let AFFILIATION = "Unipd";
 
 			const queryText = request.payload.title.split("-")[0].trim().toUpperCase();
 			const searchSystem = request.payload.title.split("-")[1].trim();
-			const pub_date = new Date().getDate;
+			const tempDate = new Date;
+			const pub_date = tempDate.toISOString().split('T')[0];
 
 			const TITLE = "Ranking snapshot for the query \"" + queryText + "\" performed on " + searchSystem;
 			const NOTES = "This citation is created using the Unipd Citation Ranking Tool. \n" +
 				"Available at https://citationranking.dei.unipd.it \n" +
 				"Created by professor Gianmaria Silvello and student Alessandro Lotta";
 			const DESCRIPTION = "This is a deposit containing the citation captured by the user " + ZENODO_USER + " from affiliation " + AFFILIATION +
-				" on date " + new Date().getDate() + " who executed the search query: \"" + queryText + "\" on the engine " + searchSystem + ".\n" +
+				" on date " + pub_date + " who executed the search query: \"" + queryText + "\" on the engine " + searchSystem + ".\n" +
 				"The data contained in the results obtained from the search query is then saved in the output-data.jsonld file. " +
 				"The deposit also contains a screenshot of the results in PNG format and the metadata for the Research Object Crate in JSON format.\n" +
 				NOTES;
@@ -157,7 +159,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				},
 			};
 
-			fetch("https://zenodo.org/api/deposit/depositions", {
+			fetch("https://sandbox.zenodo.org/api/deposit/depositions", {
 				method: "POST",
 				headers: {
 					Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -175,7 +177,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					const formData = new FormData();
 					formData.append("file", dataFile);
 
-					fetch(`https://zenodo.org/api/deposit/depositions/${depositId}/files`, {
+					fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/files`, {
 						method: "POST",
 						headers: {
 							Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -194,7 +196,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					const formData2 = new FormData();
 					formData2.append("file", crateFile);
 
-					fetch(`https://zenodo.org/api/deposit/depositions/${depositId}/files`, {
+					fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/files`, {
 						method: "POST",
 						headers: {
 							Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -220,12 +222,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 							}
 						});
 					});
-
 				})
 				.catch((error) => {
 					console.error("Error creating deposit:", error);
 				});
-			// send to popup the DOI
+
+			/*// send to popup the DOI
 			chrome.runtime.sendMessage({
 				message: "DEPOSIT DOI",
 				payload: {
@@ -253,7 +255,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					publisher: "Zenodo",
 					version: "1.0"
 				}
-			});
+			});*/
 		});
 
 

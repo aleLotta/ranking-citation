@@ -24,21 +24,19 @@ document.addEventListener("DOMContentLoaded", function (event) {
 					chrome.tabs.sendMessage(tabs[0].id, { message: "START" }, function (response) {
 						const para = document.createElement('p');
 						para.innerHTML = response.data;
-						//document.getElementById('content').appendChild(para);
-
-						// Save json-ld file
-						let blob = new Blob([response.data], { type: "application/ld+json;charset=utf-8" });
 
 						let rocrateData;
 						let DOI;
+						const data = response.data;
+						const title = response.title;
 
 						// Send message to background.js for creating RO-Crate
 						chrome.runtime.sendMessage(
 							{
 								cmd: 'CREATE RO',
 								payload: {
-									message: response.data,
-									title: response.title
+									message: data,
+									title: title
 								},
 							},
 							(response) => {
@@ -53,21 +51,24 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
 			// receive deposit content from background script
 			chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-				if (request.message === "DEPOSIT DOI") {
+				if (request.message === "DEPOSIT DATA") {
 					const depositDOI = request.payload.depositDOI;
 					const creators = request.payload.creators;
 					const title = request.payload.title;
 					const publication_date = request.payload.publication_date;
 					const publisher = request.payload.publisher;
-					const version = request.payload.version;
+					//const version = request.payload.version;
+
+					console.log(creators);
 
 					let creatorsText = "";
 					for (let author of creators){
-						creatorsText += author + ", "
+						creatorsText += author.name + ", "
 					}
 					creatorsText = creatorsText.slice(0,-2);
-					const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
-						". (Version " + version + "). ";
+					//const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
+					//	". (Version " + version + "). ";
+					const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". " ;
 
 					chrome.storage.sync.set({ [depositDOI]: citation }).then(() => {
 						//console.log("Value is set to " + citation);
