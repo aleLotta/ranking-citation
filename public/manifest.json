@@ -16,10 +16,14 @@
     "default_title": "Click to cite",
     "default_popup": "popup.html"
   },
+  "host_permissions": [
+    "https://scholar.google.com/scholar*"
+  ],
   "permissions": [
     "tabs",
     "storage",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "content_scripts": [
     {

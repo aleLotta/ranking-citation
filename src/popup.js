@@ -39,10 +39,10 @@ document.addEventListener("DOMContentLoaded", function (event) {
 									title: title
 								},
 							},
-							(response) => {
-								console.log(response.response)
-								rocrateData = response.payload.content;
-							}
+							//(response) => {
+							//	console.log(response.response)
+							//	rocrateData = response.payload.content;
+							//}
 						);
 
 					});
