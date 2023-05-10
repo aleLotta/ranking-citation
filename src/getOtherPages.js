@@ -14,7 +14,7 @@ chrome.storage.sync.get('nPages', (items) => {
     let BNODE_INDEX = (10 * (currPage - 1)) + 1;
     console.log('bnode' + BNODE_INDEX);
     let RANK_INDEX = (10 * (currPage - 1)) + 1;
-    const vocab = "https://citationranking.dei.unipd.it";
+    const vocab = "https://rankingcitation.dei.unipd.it";
     const ontology = vocab + "/ontology/";
     const resource = vocab + "/resource/";
 

@@ -154,8 +154,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 								const pub_date = tempDate.toISOString().split('T')[0];
 
 								const TITLE = "Ranking snapshot for the query \"" + queryText + "\" performed on " + searchSystem;
-								const NOTES = "This citation is created using the Unipd Citation Ranking Tool. \n" +
-									"Available at https://citationranking.dei.unipd.it \n" +
+								const NOTES = "This citation is created using the Unipd Ranking CitationTool. \n" +
+									"Available at https://rankingcitation.dei.unipd.it \n" +
 									"Created by professor Gianmaria Silvello and student Alessandro Lotta";
 								const DESCRIPTION = "This is a deposit containing the citation captured by the user " + ZENODO_USER + " from affiliation " + AFFILIATION +
 									" on date " + pub_date + " who executed the search query: \"" + queryText + "\" on the engine " + searchSystem + ".\n" +
@@ -163,7 +163,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 									"The deposit also contains a screenshot of the results in PNG format and the metadata for the Research Object Crate in JSON format.\n" +
 									NOTES;
 
-								let keywords = ["Unipd Citation Ranking Tool", queryText, searchSystem, "Ranking Snapshot"];
+								let keywords = ["Unipd Ranking Citation Tool", queryText, searchSystem, "Ranking Snapshot"];
 								for (let el of NEW_KEYWORDS) {
 									keywords.push(el);
 								}

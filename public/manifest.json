@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Unipd Citation Ranking Tool",
+  "name": "Unipd Ranking Citation Tool",
   "version": "0.1.0",
   "description": "Produce the citation for the ranking snapshot",
   "icons": {

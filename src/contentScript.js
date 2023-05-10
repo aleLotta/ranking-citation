@@ -2,7 +2,7 @@ import html2canvas from "html2canvas";
 
 let data;
 let pageTitle;
-const vocab = "https://citationranking.dei.unipd.it";
+const vocab = "https://rankingcitation.dei.unipd.it";
 const ontology = vocab + "/ontology/";
 const resource = vocab + "/resource/";
 

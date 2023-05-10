@@ -1,4 +1,4 @@
-# <img src="public/icons/icon_48.png" width="45" align="left"> Unipd Citation Ranking Tool
+# <img src="public/icons/icon_48.png" width="45" align="left"> Unipd Ranking Citation Tool
 
 My Chrome Extension
 
