@@ -408,7 +408,7 @@ function getFullScreen(ACCESS_TOKEN, depositId) {
 		canvas.toBlob(function (blob) {
 
 			// create File variable for screenshot
-			const imgFile = new File([blob], 'ranking-snapshot.png', { type: 'image/png' });
+			const imgFile = new File([blob], 'ranking-snapshot-page1.png', { type: 'image/png' });
 
 			const formData = new FormData();
 

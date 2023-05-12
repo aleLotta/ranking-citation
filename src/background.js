@@ -1,8 +1,9 @@
 // Go to options page when installed
 chrome.runtime.onInstalled.addListener(() => {
 	chrome.runtime.openOptionsPage();
-})
+});
 
+// Publish after the ulpoading of the screenshots
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === "Uploaded Screenshot") {
 
@@ -35,8 +36,43 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				console.error("Error publishing deposit:", error);
 			});
 	}
-})
+});
 
+let data;
+let queryText, searchSystem;
+// Check if popup as said to start RO creation
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.cmd === 'CREATE RO') {
+		chrome.storage.sync.get('nPages', function (items) {
+			if (Object.keys(items).length !== 0) {
+				const nPages = items.nPages;
+				data = JSON.parse(request.payload.message);
+				queryText = request.payload.title.split("-")[0].trim().toUpperCase();
+				searchSystem = request.payload.title.split("-")[1].trim();
+				if (nPages > 1) getAdditionalPages(nPages);
+				else uploadData(data)
+			}
+		});
+	}
+});
+
+let newData = []
+// Add the data from the additional pages
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.message === 'NEW DATA') {
+		const dataToAdd = request.payload.newData;
+		for (let d in dataToAdd) {
+			data['@graph'].push(dataToAdd[d]);
+		}
+	}
+	if (request.message === 'LAST PAGE') {
+		const dataToAdd = request.payload.newData;
+		for (let d in dataToAdd) {
+			data['@graph'].push(dataToAdd[d]);
+		}
+		uploadData(data);
+	}
+});
 
 async function getAdditionalPages(nPages) {
 	try {
@@ -65,55 +101,11 @@ async function getAdditionalPages(nPages) {
 	}
 }
 
-
-let data;
-let queryText, searchSystem;
-// Check if popup as said to start RO creation
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.cmd === 'CREATE RO') {
-
-		chrome.storage.sync.get('nPages', function (items) {
-			if (Object.keys(items).length !== 0) {
-				const nPages = items.nPages;
-				data = JSON.parse(request.payload.message);
-				queryText = request.payload.title.split("-")[0].trim().toUpperCase();
-				searchSystem = request.payload.title.split("-")[1].trim();
-				getAdditionalPages(nPages);
-			}
-		});
-	}
-});
-
-let newData = []
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.message === 'NEW DATA') {
-		const dataToAdd = request.payload.newData;
-		for (let d in dataToAdd) {
-			data['@graph'].push(dataToAdd[d]);
-		}
-	}
-	if (request.message === 'LAST PAGE') {
-		const dataToAdd = request.payload.newData;
-		for (let d in dataToAdd) {
-			data['@graph'].push(dataToAdd[d]);
-		}
-		uploadData(data);
-	}
-})
-
-/*chrome.storage.onChanged.addListener(function (changes, namespace) {
-	for (let key in changes) {
-		if (key === 'newData') {
-			let storageChange = changes[key];
-		}
-	}
-})*/
-
 function uploadData(data) {
 
 	console.log('Start updating data');
 
-	chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', 'orcid', 'keywords', 'otherAuthors'], function (items) {
+	chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', 'orcid', 'keywords', 'otherAuthors', 'nPages'], function (items) {
 		const ACCESS_TOKEN = items.accessToken;
 		const ZENODO_USER = items.firstName + " " + items.lastName;
 		const AFFILIATION = items.affiliation;
@@ -121,6 +113,8 @@ function uploadData(data) {
 		const NEW_KEYWORDS = items.keywords;
 
 		const otherAuthors = items.otherAuthors ? items.otherAuthors.split(";") : '';
+
+		const nPages = items.nPages;
 
 		const currentTimeStamp = new Date();
 
@@ -308,6 +302,20 @@ function uploadData(data) {
 						console.error("Error uploading file:", error);
 					});
 
+				// Capture screenshot for the additional pages
+				for (let page = nPages - 1; page > 0; page--) {
+					chrome.tabs.query({ currentWindow: true }, function (tabs) {
+						chrome.tabs.sendMessage(tabs[tabs.length - page].id, {
+							message: `ADD SCREENSHOT${nPages - page + 1}`,
+							payload: {
+								token: ACCESS_TOKEN,
+								depositId: depositId
+							}
+						});
+					});
+				}
+
+
 				// Tell contentScript to take a screenshot and upload on Zenodo
 				// Warning: do not open the inspection tool when running
 				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -319,6 +327,8 @@ function uploadData(data) {
 						}
 					});
 				});
+
+
 			})
 			.catch((error) => {
 				console.error("Error creating deposit:", error);

@@ -1,11 +1,14 @@
+import html2canvas from "html2canvas";
+
+const url = new URL(window.location.href);
+const params = new URLSearchParams(url.search);
+const start = params.get('start');
+
+const currPage = (start / 10) + 1;
+
 chrome.storage.sync.get('nPages', (items) => {
     const nPages = items.nPages;
 
-    const url = new URL(window.location.href);
-    const params = new URLSearchParams(url.search);
-    const start = params.get('start');
-
-    const currPage = (start / 10) + 1;
     console.log('currentPage ' + currPage);
 
     const results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
@@ -132,6 +135,46 @@ chrome.storage.sync.get('nPages', (items) => {
     }
 });
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.message === `ADD SCREENSHOT${currPage}`) {
+        console.log("Adding page screenshot");
+        const ACCESS_TOKEN = request.payload.token;
+        const depositId = request.payload.depositId;
+
+        html2canvas(document.body).then(function (canvas) {
+
+            canvas.toBlob(function (blob) {
+
+                // create File variable for screenshot
+                const imgFile = new File([blob], `ranking-snapshot-page${currPage}.png`, { type: 'image/png' });
+
+                const formData = new FormData();
+
+                // Upload the screenshot file to the the deposit
+                formData.append("file", imgFile);
+
+                fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/files`, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${ACCESS_TOKEN}`,
+                    },
+                    body: formData,
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log("File uploaded successfully:", data);
+                        sendResponse({
+                            response: `Screenshot${currPage}`,
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error uploading file:", error);
+                    });
+            });
+
+        })
+    }
+})
 
 function hashCode(s) {
     let h = 0, l = s.length, i = 0;
