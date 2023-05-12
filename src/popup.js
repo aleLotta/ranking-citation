@@ -59,8 +59,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
 					const publisher = request.payload.publisher;
 					//const version = request.payload.version;
 
-					console.log(creators);
-
 					let creatorsText = "";
 					for (let author of creators){
 						creatorsText += author.name + ", "

@@ -98,7 +98,7 @@ chrome.storage.sync.get('nPages', (items) => {
 
     console.log(newData);
 
-    if (currPage > 2) {
+    /*if (currPage > 2) {
         chrome.storage.local.get('newData', function (items) {
             let prevData = items.newData;
             for (let j in newData) {
@@ -112,6 +112,22 @@ chrome.storage.sync.get('nPages', (items) => {
     } else {
         chrome.storage.local.set({
             newData: newData
+        })
+    }*/
+
+    if (currPage == nPages) {
+        chrome.runtime.sendMessage({
+            message: 'LAST PAGE',
+            payload: {
+                newData: newData,
+            }
+        })
+    } else if (currPage < nPages) {
+        chrome.runtime.sendMessage({
+            message: 'NEW DATA',
+            payload: {
+                newData: newData,
+            }
         })
     }
 });
