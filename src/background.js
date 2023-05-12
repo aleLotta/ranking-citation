@@ -3,29 +3,65 @@ chrome.runtime.onInstalled.addListener(() => {
 	chrome.runtime.openOptionsPage();
 })
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.message === "Uploaded Screenshot") {
 
+		const { payload: { depositId, ACCESS_TOKEN } } = request;
+
+		// post the deposit on Zenodo
+		fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/actions/publish`, {
+			method: "POST",
+			headers: {
+				Authorization: `Bearer ${ACCESS_TOKEN}`,
+			},
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				console.log("Deposit published successfully:", data);
+
+				// send to popup for citation
+				chrome.runtime.sendMessage({
+					message: "DEPOSIT DATA",
+					payload: {
+						depositDOI: data.doi,
+						creators: data.metadata.creators,
+						title: data.metadata.title,
+						publication_date: data.metadata.publication_date,
+						publisher: "Zenodo"
+					}
+				})
+			})
+			.catch((error) => {
+				console.error("Error publishing deposit:", error);
+			});
+	}
+})
 
 
 async function getAdditionalPages(nPages) {
-	for (let i = 1; i < nPages; i++) {
-		const startURL = 10 * i;
-		//const pageURL = `https://scholar.google.com/scholar?start=${startURL}&as_sdt=2007&q=cancer&hl=en`;
-		const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=cancer&hl=en&as_sdt=0,5&as_vis=1`;
-		chrome.tabs.create({ url: pageURL, active: false }, createdTab => {
-			chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
-				if (tabId === createdTab.id && info.url) {
-					chrome.tabs.onUpdated.removeListener(_);
-					console.log("starting new page");
+	try {
+		for (let i = 1; i < nPages; i++) {
+			const startURL = 10 * i;
+			//const pageURL = `https://scholar.google.com/scholar?start=${startURL}&as_sdt=2007&q=cancer&hl=en`;
+			const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=cancer&hl=en&as_sdt=0,5&as_vis=1`;
+			chrome.tabs.create({ url: pageURL, active: false }, createdTab => {
+				chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
+					if (tabId === createdTab.id && info.url) {
+						chrome.tabs.onUpdated.removeListener(_);
 
-					chrome.scripting.executeScript({
-						target: {
-							tabId: tabId
-						},
-						files: ['getOtherPages.js']
-					});
-				}
+						chrome.scripting.executeScript({
+							target: {
+								tabId: tabId
+							},
+							files: ['getOtherPages.js']
+						});
+					}
+				});
 			});
-		});
+		}
+	}
+	catch (error) {
+		console.error('Encountered problems while opening the other pages');
 	}
 }
 
@@ -42,7 +78,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			const ORCID = items.orcid;
 			const NEW_KEYWORDS = items.keywords;
 
-			const otherAuthors = items.otherAuthors.split(";");
+			const otherAuthors = items.otherAuthors ? items.otherAuthors.split(";") : '';
 
 			const nPages = items.nPages;
 
@@ -54,6 +90,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				.then(() => {
 					chrome.storage.local.get('newData', function (items) {
 						let newData = items.newData;
+						console.log(newData);
 
 						if (newData) {
 							for (let i in newData) {
@@ -63,8 +100,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						}
 						console.log(data);
 
-						chrome.storage.local.remove('newData')
+						function removeKey(key) {
+							return new Promise((resolve, reject) => {
+								chrome.storage.local.remove(key, () => {
+									if (chrome.runtime.lastError) {
+										reject(chrome.runtime.lastError);
+									} else {
+										resolve();
+									}
+
+								});
+							});
+						};
+
+						//chrome.storage.local.remove('newData')
+						removeKey('newData')
 							.then(() => {
+								console.log('newData removed');
 								const currentTimeStamp = new Date();
 
 								const user_id = ORCID;
@@ -298,6 +350,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 										version: "1.0"
 									}
 								});*/
+							})
+							.catch(error => {
+								console.error(error);
 							});
 					});
 				});

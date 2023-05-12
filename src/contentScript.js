@@ -426,32 +426,13 @@ function getFullScreen(ACCESS_TOKEN, depositId) {
 				.then((data) => {
 					console.log("File uploaded successfully:", data);
 
-					// post the deposit on Zenodo
-					fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/actions/publish`, {
-						method: "POST",
-						headers: {
-							Authorization: `Bearer ${ACCESS_TOKEN}`,
-						},
-					})
-						.then((response) => response.json())
-						.then((data) => {
-							console.log("Deposit published successfully:", data);
-
-							// send to popup for citation
-							chrome.runtime.sendMessage({
-								message: "DEPOSIT DATA",
-								payload: {
-									depositDOI: data.doi,
-									creators: data.metadata.creators,
-									title: data.metadata.title,
-									publication_date: data.metadata.publication_date,
-									publisher: "Zenodo"
-								}
-							})
-						})
-						.catch((error) => {
-							console.error("Error publishing deposit:", error);
-						});
+				chrome.runtime.sendMessage({
+					message: "Uploaded Screenshot",
+					payload: {
+						depositId: depositId,
+						ACCESS_TOKEN: ACCESS_TOKEN,
+					}
+				})
 				})
 				.catch((error) => {
 					console.error("Error uploading file:", error);
