@@ -3,7 +3,7 @@ chrome.runtime.onInstalled.addListener(() => {
 	chrome.runtime.openOptionsPage();
 });
 
-// Publish after the ulpoading of the screenshots
+// Publish after the uploading of the screenshots
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === "Uploaded Screenshot") {
 
@@ -49,8 +49,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				data = JSON.parse(request.payload.message);
 				queryText = request.payload.title.split("-")[0].trim().toUpperCase();
 				searchSystem = request.payload.title.split("-")[1].trim();
-				if (nPages > 1) getAdditionalPages(nPages);
-				else uploadData(data)
+				getAdditionalPages(nPages);
 			}
 		});
 	}
@@ -76,25 +75,43 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function getAdditionalPages(nPages) {
 	try {
-		for (let i = 1; i < nPages; i++) {
-			const startURL = 10 * i;
-			//const pageURL = `https://scholar.google.com/scholar?start=${startURL}&as_sdt=2007&q=cancer&hl=en`;
-			const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=cancer&hl=en&as_sdt=0,5&as_vis=1`;
-			chrome.tabs.create({ url: pageURL, active: false }, createdTab => {
-				chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
-					if (tabId === createdTab.id && info.url) {
-						chrome.tabs.onUpdated.removeListener(_);
+		chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+			let currentUrl = tabs[0].url;
 
-						chrome.scripting.executeScript({
-							target: {
-								tabId: tabId
-							},
-							files: ['getOtherPages.js']
-						});
-					}
+			const url = new URL(tabs[0].url);
+			const params = new URLSearchParams(url.search);
+			const patentsFilter = params.get('as_sdt') ?? '0.5';
+			const queryFilter = params.get('q');
+			const languageFilter = params.get('hl') ?? 'en';
+			const sinceYearFilter = params.get('as_ylo') ?? '';
+			const untilYearFilter = params.get('as_yhi') ?? '';
+			const sortByFilter = params.get('scisbd') ?? '0';
+			const resultTypeFilter = params.get('as_rr') ?? '0';
+
+			for (let i = 0; i < nPages; i++) {
+
+				const startURL = 10 * i;
+				//const pageURL = `https://scholar.google.com/scholar?start=${startURL}&as_sdt=2007&q=cancer&hl=en`;
+				//const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=cancer&hl=en&as_sdt=0,5&as_vis=1`;
+				const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=${queryFilter}&hl=${languageFilter}&as_sdt=${patentsFilter}&as_vis=1&`+
+								`as_ylo=${sinceYearFilter}&as_yhi${untilYearFilter}&scisbd=${sortByFilter}&as_rr=${resultTypeFilter}`;
+				chrome.tabs.create({ url: pageURL, active: false }, createdTab => {
+					chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
+						if (tabId === createdTab.id && info.url) {
+							chrome.tabs.onUpdated.removeListener(_);
+
+							chrome.scripting.executeScript({
+								target: {
+									tabId: tabId
+								},
+								files: ['getOtherPages.js']
+							});
+						}
+					});
 				});
-			});
-		}
+			}
+		});
+
 	}
 	catch (error) {
 		console.error('Encountered problems while opening the other pages');
@@ -208,8 +225,9 @@ function uploadData(data) {
 			"Created by professor Gianmaria Silvello and student Alessandro Lotta";
 		const DESCRIPTION = "This is a deposit containing the citation captured by the user " + ZENODO_USER + " from affiliation " + AFFILIATION +
 			" on date " + pub_date + " who executed the search query: \"" + queryText + "\" on the engine " + searchSystem + ".\n" +
+			"The number of pages captured is " + nPages + ".\n" +
 			"The data contained in the results obtained from the search query is then saved in the output-data.jsonld file. " +
-			"The deposit also contains a screenshot of the results in PNG format and the metadata for the Research Object Crate in JSON format.\n" +
+			"The deposit also contains the screenshots of the results in PNG format and the metadata for the Research Object Crate in JSON format.\n" +
 			NOTES;
 
 		let keywords = ["Unipd Ranking Citation Tool", queryText, searchSystem, "Ranking Snapshot"];
@@ -230,8 +248,8 @@ function uploadData(data) {
 					{
 						name: author.split(',')[0],
 						affiliation: author.split(',')[2],
-						//orcid: author.split(',')[1]
-						orcid: "https://orcid.org/0000-0002-1825-0097"
+						orcid: author.split(',')[1]
+						//orcid: "https://orcid.org/0000-0002-1825-0097"
 					}
 				);
 			}
@@ -303,7 +321,7 @@ function uploadData(data) {
 					});
 
 				// Capture screenshot for the additional pages
-				for (let page = nPages - 1; page > 0; page--) {
+				for (let page = nPages; page > 0; page--) {
 					chrome.tabs.query({ currentWindow: true }, function (tabs) {
 						chrome.tabs.sendMessage(tabs[tabs.length - page].id, {
 							message: `ADD SCREENSHOT${nPages - page + 1}`,
@@ -316,7 +334,7 @@ function uploadData(data) {
 				}
 
 
-				// Tell contentScript to take a screenshot and upload on Zenodo
+				/*// Tell contentScript to take a screenshot and upload on Zenodo
 				// Warning: do not open the inspection tool when running
 				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 					chrome.tabs.sendMessage(tabs[0].id, {
@@ -326,7 +344,7 @@ function uploadData(data) {
 							depositId: depositId
 						}
 					});
-				});
+				});*/
 
 
 			})
@@ -335,6 +353,3 @@ function uploadData(data) {
 			});
 	});
 }
-
-
-

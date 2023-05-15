@@ -5,9 +5,10 @@ const params = new URLSearchParams(url.search);
 const start = params.get('start');
 
 const currPage = (start / 10) + 1;
+let nPages;
 
 chrome.storage.sync.get('nPages', (items) => {
-    const nPages = items.nPages;
+    nPages = items.nPages;
 
     console.log('currentPage ' + currPage);
 
@@ -22,7 +23,8 @@ chrome.storage.sync.get('nPages', (items) => {
     const resource = vocab + "/resource/";
 
     ////// To edit /////
-    let resultListId = "resultList[" + 123456789 + "]";
+    const timestamp = new Date();
+    let resultListId = "resultList[" + timestamp + "]";
     resultListId = hashCode(resultListId);
 
     results.forEach((result) => {
@@ -80,11 +82,11 @@ chrome.storage.sync.get('nPages', (items) => {
         });
 
         if (BNODE_INDEX === 1) {
-            newData.push({
+            /*newData.push({
                 "@id": resource + resultListId,
                 "rdf:first": { "@id": resultURL },
                 "rdf:rest": { "@id": bnodeString }
-            });
+            });*/
         }
         else {
             const PREV_BNODE_INDEX = BNODE_INDEX - 1;
@@ -163,9 +165,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     .then((response) => response.json())
                     .then((data) => {
                         console.log("File uploaded successfully:", data);
-                        sendResponse({
-                            response: `Screenshot${currPage}`,
-                        });
+                        if (currPage == nPages) {
+                            chrome.runtime.sendMessage({
+                                message: "Uploaded Screenshot",
+                                payload: {
+                                    depositId: depositId,
+                                    ACCESS_TOKEN: ACCESS_TOKEN,
+                                }
+                            });
+                        }
                     })
                     .catch((error) => {
                         console.error("Error uploading file:", error);
