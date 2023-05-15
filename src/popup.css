@@ -20,7 +20,8 @@
 }
 
 .citation {
-  background-color: rgba(219, 255, 242, 0.523);
+  /*background-color: rgba(219, 255, 242, 0.523);*/
+  background-color: rgb(219 240 255);
   margin: 5px;
   padding: 5px;
   display: flex;
@@ -70,12 +71,22 @@ hr {
 
 #copyBtn {
   margin: 0 5px 0 7px;
-  font-size: 26px;
+  font-size: 20px;
   color: #0000007d;
 }
 
 #copyBtn:hover {
   color: black;
+}
+
+#removeCitBtn {
+  font-size: 15px;
+  margin: 0 5px 0 7px;
+  color: rgba(171, 22, 2, 0.929)
+}
+
+#removeCitBtn:hover {
+  color: red
 }
 
 #optionsBtn {

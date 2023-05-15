@@ -60,13 +60,13 @@ document.addEventListener("DOMContentLoaded", function (event) {
 					//const version = request.payload.version;
 
 					let creatorsText = "";
-					for (let author of creators){
+					for (let author of creators) {
 						creatorsText += author.name + ", "
 					}
-					creatorsText = creatorsText.slice(0,-2);
+					creatorsText = creatorsText.slice(0, -2);
 					//const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
 					//	". (Version " + version + "). ";
-					const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". " ;
+					const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". ";
 
 					chrome.storage.sync.set({ [depositDOI]: citation }).then(() => {
 						//console.log("Value is set to " + citation);
@@ -139,6 +139,8 @@ function updateCitations(key) {
 			citationDiv.appendChild(citationText);
 
 			// button to copy the citation
+			const buttonsDiv = document.createElement("div");
+			buttonsDiv.id = 'buttonsDiv';
 			const copyButton = document.createElement("i");
 			copyButton.className = "fa fa-copy";
 			copyButton.id = "copyBtn";
@@ -149,7 +151,18 @@ function updateCitations(key) {
 					copyButton.style = "color:green";
 				})
 			})
-			citationDiv.appendChild(copyButton);
+
+			const removeCitBtn = document.createElement('i');
+			removeCitBtn.className = "fa fa-remove";
+			removeCitBtn.id = 'removeCitBtn';
+			removeCitBtn.addEventListener('click', () => {
+				chrome.storage.sync.remove(key);
+				citationDiv.remove();
+			})
+
+			buttonsDiv.appendChild(copyButton);
+			buttonsDiv.appendChild(removeCitBtn);
+			citationDiv.appendChild(buttonsDiv);
 
 			document.getElementById("content").appendChild(citationDiv);
 
