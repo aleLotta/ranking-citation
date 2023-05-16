@@ -165,15 +165,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     .then((response) => response.json())
                     .then((data) => {
                         console.log("File uploaded successfully:", data);
-                        if (currPage == nPages) {
+                        //if (currPage == nPages) {
                             chrome.runtime.sendMessage({
                                 message: "Uploaded Screenshot",
                                 payload: {
                                     depositId: depositId,
                                     ACCESS_TOKEN: ACCESS_TOKEN,
+                                    nPages: nPages,
                                 }
                             });
-                        }
+                        //}
                     })
                     .catch((error) => {
                         console.error("Error uploading file:", error);

@@ -4,37 +4,41 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // Publish after the uploading of the screenshots
+let screenshotCount = 0;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === "Uploaded Screenshot") {
+		screenshotCount++;
 
-		const { payload: { depositId, ACCESS_TOKEN } } = request;
+		if (screenshotCount == request.payload.nPages) {
+			const { payload: { depositId, ACCESS_TOKEN } } = request;
 
-		// post the deposit on Zenodo
-		fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/actions/publish`, {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${ACCESS_TOKEN}`,
-			},
-		})
-			.then((response) => response.json())
-			.then((data) => {
-				console.log("Deposit published successfully:", data);
-
-				// send to popup for citation
-				chrome.runtime.sendMessage({
-					message: "DEPOSIT DATA",
-					payload: {
-						depositDOI: data.doi,
-						creators: data.metadata.creators,
-						title: data.metadata.title,
-						publication_date: data.metadata.publication_date,
-						publisher: "Zenodo"
-					}
-				})
+			// post the deposit on Zenodo
+			fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/actions/publish`, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${ACCESS_TOKEN}`,
+				},
 			})
-			.catch((error) => {
-				console.error("Error publishing deposit:", error);
-			});
+				.then((response) => response.json())
+				.then((data) => {
+					console.log("Deposit published successfully:", data);
+
+					// send to popup for citation
+					chrome.runtime.sendMessage({
+						message: "DEPOSIT DATA",
+						payload: {
+							depositDOI: data.doi,
+							creators: data.metadata.creators,
+							title: data.metadata.title,
+							publication_date: data.metadata.publication_date,
+							publisher: "Zenodo"
+						}
+					})
+				})
+				.catch((error) => {
+					console.error("Error publishing deposit:", error);
+				});
+		}
 	}
 });
 
@@ -93,8 +97,8 @@ async function getAdditionalPages(nPages) {
 				const startURL = 10 * i;
 				//const pageURL = `https://scholar.google.com/scholar?start=${startURL}&as_sdt=2007&q=cancer&hl=en`;
 				//const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=cancer&hl=en&as_sdt=0,5&as_vis=1`;
-				const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=${queryFilter}&hl=${languageFilter}&as_sdt=${patentsFilter}&as_vis=1&`+
-								`as_ylo=${sinceYearFilter}&as_yhi${untilYearFilter}&scisbd=${sortByFilter}&as_rr=${resultTypeFilter}`;
+				const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=${queryFilter}&hl=${languageFilter}&as_sdt=${patentsFilter}&as_vis=1&` +
+					`as_ylo=${sinceYearFilter}&as_yhi${untilYearFilter}&scisbd=${sortByFilter}&as_rr=${resultTypeFilter}`;
 				chrome.tabs.create({ url: pageURL, active: false }, createdTab => {
 					chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
 						if (tabId === createdTab.id && info.url) {
@@ -220,11 +224,11 @@ function uploadData(data) {
 		const pub_date = tempDate.toISOString().split('T')[0];
 
 		const TITLE = "Ranking snapshot for the query \"" + queryText + "\" performed on " + searchSystem;
-		const NOTES = "This citation is created using the Unipd Ranking Citation Tool. \n" +
-			"Available at https://rankingcitation.dei.unipd.it \n" +
-			"Created by professor Gianmaria Silvello and student Alessandro Lotta";
+		const NOTES = "This citation is produced using the Unipd Ranking Citation Tool. \n" +
+			"Available at https://rankingcitation.dei.unipd.it , \n" +
+			"created by professor Gianmaria Silvello and student Alessandro Lotta of the University of Padua.";
 		const DESCRIPTION = "This is a deposit containing the citation captured by the user " + ZENODO_USER + " from affiliation " + AFFILIATION +
-			" on date " + pub_date + " who executed the search query: \"" + queryText + "\" on the engine " + searchSystem + ".\n" +
+			" on date " + pub_date + " who executed the search query \"" + queryText + "\" on the system " + searchSystem + ".\n" +
 			"The number of pages captured is " + nPages + ".\n" +
 			"The data contained in the results obtained from the search query is then saved in the output-data.jsonld file. " +
 			"The deposit also contains the screenshots of the results in PNG format and the metadata for the Research Object Crate in JSON format.\n" +
