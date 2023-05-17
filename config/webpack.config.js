@@ -12,7 +12,7 @@ const config = (env, argv) =>
       popup: PATHS.src + '/popup.js',
       contentScript: PATHS.src + '/contentScript.js',
       background: PATHS.src + '/background.js',
-      getOtherPages: PATHS.src + '/getOtherPages.js'
+      "Scholar/getOtherPages": PATHS.src + '/Scholar/getOtherPages.js'
     },
     devtool: argv.mode === 'production' ? false : 'source-map',
   });

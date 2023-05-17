@@ -55,6 +55,7 @@ chrome.storage.sync.get('nPages', (items) => {
             "schema:url": resultURL,
             "cro:authors": authors,
             "cro:publicationYear": publicationYear,
+            "cro:currentPage": currPage,
         });
 
         RANK_INDEX++;
@@ -103,24 +104,7 @@ chrome.storage.sync.get('nPages', (items) => {
 
     console.log(newData);
 
-    /*if (currPage > 2) {
-        chrome.storage.local.get('newData', function (items) {
-            let prevData = items.newData;
-            for (let j in newData) {
-                prevData.push(newData[j]);
-            }
-            newData = prevData;
-            chrome.storage.local.set({
-                newData: newData
-            })
-        })
-    } else {
-        chrome.storage.local.set({
-            newData: newData
-        })
-    }*/
-
-    if (currPage == nPages) {
+    /*if (currPage == nPages) {
         chrome.runtime.sendMessage({
             message: 'LAST PAGE',
             payload: {
@@ -134,7 +118,14 @@ chrome.storage.sync.get('nPages', (items) => {
                 newData: newData,
             }
         })
-    }
+    }*/
+    chrome.runtime.sendMessage({
+        message: 'NEW DATA',
+        payload: {
+            newData: newData,
+            nPages: nPages
+        }
+    });
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

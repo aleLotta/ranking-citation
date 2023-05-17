@@ -60,6 +60,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 let newData = []
+let newDataCounter = 0;
 // Add the data from the additional pages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === 'NEW DATA') {
@@ -67,14 +68,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		for (let d in dataToAdd) {
 			data['@graph'].push(dataToAdd[d]);
 		}
+		newDataCounter++;
+		if (newDataCounter == request.payload.nPages) {
+			uploadData(data);
+		}
 	}
-	if (request.message === 'LAST PAGE') {
+	/*if (request.message === 'LAST PAGE') {
 		const dataToAdd = request.payload.newData;
 		for (let d in dataToAdd) {
 			data['@graph'].push(dataToAdd[d]);
 		}
 		uploadData(data);
-	}
+	}*/
 });
 
 async function getAdditionalPages(nPages) {
@@ -108,7 +113,7 @@ async function getAdditionalPages(nPages) {
 								target: {
 									tabId: tabId
 								},
-								files: ['getOtherPages.js']
+								files: ['Scholar/getOtherPages.js']
 							});
 						}
 					});
