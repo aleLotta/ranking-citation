@@ -70,7 +70,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
 function addAuthor() {
     const newAuthor = document.createElement("fieldset");
     newAuthor.id = "newAuthorsFS";
-    newAuthor.innerHTML += '<label for="newFname">First name(*):</label><br>' +
+    newAuthor.innerHTML += '<form id="keywordForm">' +
+        '<label for="newFname">First name(*):</label><br>' +
         '<input type="text" id="newFname" name="newFname" required><br>' +
         '<label for="newLname">Last name(*):</label><br>' +
         '<input type="text" id="newLname" name="newLname" required><br>' +
@@ -78,9 +79,11 @@ function addAuthor() {
         '<input type="text" id="newOrcid" name="newOrcid"><br>' +
         '<label for="newAffiliation">Affiliation:</label><br>' +
         '<input type="text" id="newAffiliation" name="newAffiliation" value="Unipd"><br><br></br>' +
-        '<button type="button" id="insertAuthor">Add</button>';
+        '<button type="submit" id="insertAuthor">Insert author</button></form>';
     document.getElementById("addAuthors").insertAdjacentElement('afterend', newAuthor);
-    document.getElementById("insertAuthor").addEventListener("click", uploadAuthor);
+    document.getElementById('addAuthors').style = 'display:none';
+    //document.getElementById("insertAuthor").addEventListener("click", uploadAuthor);
+    document.getElementById('keywordForm').addEventListener('submit', uploadAuthor);
 }
 
 function removeAuthor() {
@@ -128,10 +131,15 @@ function uploadAuthor() {
         otherAuthors += `${name},${orcid},${affiliation};`;
     }
 
+    document.getElementById('addAuthors').style = 'display:';
+    const removeButtons = document.querySelectorAll('.remove-row');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', removeAuthor);
+    });
+
     chrome.storage.sync.set({
         otherAuthors: otherAuthors
     });
-
 }
 
 function saveOptions(event) {

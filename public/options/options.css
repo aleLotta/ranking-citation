@@ -85,3 +85,28 @@ input[type="submit"]:hover {
 .remove-row {
     border: none;
 }
+
+#add-keyword {
+    margin-left: 5px;
+    margin-bottom: 10px;
+}
+
+/* Style for the add buttons */
+#add-keyword,
+#addAuthors,
+#insertAuthor {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* Style for the add buttons on hover */
+#add-keyword:hover,
+#addAuthors:hover,
+#insertAuthor:hover {
+    background-color: #45a049;
+}
