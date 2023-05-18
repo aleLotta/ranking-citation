@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
-    "ro-crate": "^3.2.1"
+    "ro-crate": "^3.2.1",
+    "twit": "^2.2.11"
   }
 }

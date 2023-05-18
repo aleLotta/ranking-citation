@@ -53,7 +53,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				data = JSON.parse(request.payload.message);
 				queryText = request.payload.title.split("-")[0].trim().toUpperCase();
 				searchSystem = request.payload.title.split("-")[1].trim();
-				getAdditionalPages(nPages);
+				getPagesRanks(nPages);
 			}
 		});
 	}
@@ -82,10 +82,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}*/
 });
 
-async function getAdditionalPages(nPages) {
+async function getPagesRanks(nPages) {
 	try {
 		chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-			let currentUrl = tabs[0].url;
 
 			const url = new URL(tabs[0].url);
 			const params = new URLSearchParams(url.search);

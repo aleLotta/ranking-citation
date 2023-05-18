@@ -160,56 +160,51 @@ chrome.storage.sync.get(['nPages'], function (items) {
 				 */
 				const url = new URL(window.location.href);
 				const params = new URLSearchParams(url.search);
-				const patentsFilter = params.get('as_sdt') ?? '0.5';
+                const language = params.get('hl') ?? 'en';
 				const queryText = params.get('q');
-				const language = params.get('hl') ?? 'en';
-				const sinceYearFilter = params.get('as_ylo') ?? null;
-				const untilYearFilter = params.get('as_yhi') ?? null;
-				const sortByFilter = params.get('scisbd') ?? '0';
-				const resultTypeFilter = params.get('as_rr') ?? '0';
+                
+                // Basic Filters
+                const peopleFilter = params.get('pf') ?? '';
+                const locationFilter = params.get('lf') ?? '';
+                const orderFilter = params.get('f') ?? 'top';
 
-				const filters = [];
-				if (patentsFilter !== '0.5') {
-					filters.push("Include patents");
-				} else {
-					filters.push("Don't include patents");
-				}
+                const filters = [];
 
-				if ((!sinceYearFilter) && (!untilYearFilter)) {
-					filters.push('Any Time');
-				} else {
-					if (sinceYearFilter) filters.push(`Since year ${sinceYearFilter}`);
-					if (untilYearFilter) filters.push(`Until year ${untilYearFilter}`);
-				}
-				if (sortByFilter === '0') {
-					filters.push('Sort by relevance');
-				} else { filters.push('Sort by date'); }
-				if (resultTypeFilter === '0') {
-					filters.push('Any type');
-				} else { filters.push('Review articles'); }
+                if (peopleFilter === '') {
+                    filters.push('From Anyone');
+                } else {
+                    filters.push('People you follow');
+                }
 
+                if (locationFilter === '') {
+                    filters.push('Anywhere');
+                } else {
+                    filters.push('Near You');
+                }
 
-				/*const queryText = pageTitle.split('-')[0];
-				const language = URL.split('?')[1].split('&')[0].slice(3);
-				const patentsFilter = document.getElementsByClassName('gs_cb_gen gs_in_cb gs_md_li')[0] ?? null;
-				const allFilters = document.querySelectorAll('.gs_ind.gs_bdy_sb_sel');
-				const filters = [];
-				for (let j = 0; j < allFilters.length; j++) {
-					filters.push(allFilters[j].innerText);
-				}
-				if (patentsFilter) {
-					if (patentsFilter.getAttribute("aria-checked")) {
-						filters.push("Include patents");
-					} else {
-						filters.push("Don't include patents");
-					}
-				}*/
+                switch(orderFilter) {
+                    case "top":
+                        filters.push('Top tweets');
+                        break;
+                    case "live":
+                        filters.push('Latest tweets');
+                        break;
+                    case "user":
+                        filters.push('People accounts');
+                        break;
+                    case "image":
+                        filters.push('Image Tweets');
+                        break;
+                    case "video":
+                        filters.push('Video Tweets');
+                } 
+
+                
+                // Advanced Filters
 
 
 				// Data for User Settings
-				const loginElement = document.getElementById("gs_hdr_act_i");
-				let isLogged = false;
-				if (loginElement) isLogged = true;
+				let isLogged = true;
 				const userData = navigator.userAgentData;
 				const userOS = userData.platform;
 				const browser = userData.brands[1].brand;
