@@ -65,6 +65,18 @@ document.addEventListener("DOMContentLoaded", function (event) {
             document.getElementById("n-pages").value = nPages;
         }
     });
+
+    // Get Upload Destination
+    chrome.storage.sync.get(['uploadDestination'], function (items) {
+        if (Object.keys(items).length !== 0) {
+            const uploadDestination = items.uploadDestination;
+            if (uploadDestination.includes('sandbox')) {
+                document.getElementById('zenodoSandbox').checked = true;
+            } else {
+                document.getElementById('zenodo').checked = true;
+            }
+        }
+    })
 });
 
 function addAuthor() {
@@ -152,6 +164,15 @@ function saveOptions(event) {
     let orcid = document.getElementById("orcid").value;
     let keywordsElement = document.getElementsByClassName("keyText");
     let nPages = document.getElementById("n-pages").value;
+    
+    let zenodoRadio = document.getElementById('zenodo');
+    let zenodoSandboxRadio = document.getElementById('zenodoSandbox');
+    let uploadDestination;
+    if (zenodoRadio.checked) {
+        uploadDestination = 'https://zenodo.org/';
+    } else if (zenodoSandboxRadio.checked) {
+        uploadDestination = 'https://sandbox.zenodo.org/'
+    }
 
     let keywords = [];
     for (let element of keywordsElement) {
@@ -166,6 +187,7 @@ function saveOptions(event) {
         orcid: orcid,
         keywords: keywords,
         nPages: nPages,
+        uploadDestination: uploadDestination,
     }, function () {
         // Notify the user that the options were saved.
         let status = document.getElementById('status');

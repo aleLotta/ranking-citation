@@ -374,61 +374,6 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 		}
 	);
 });
-// Listener from popup to start gathering data
-
-
-
-// Listener from background to take screenshot
-/*chrome.runtime.onMessage.addListener(
-	function (request, sender, sendResponse) {
-		if (request.message === "SCREENSHOT") {
-			console.log("Taking Screenshot");
-			getFullScreen(request.payload.token, request.payload.depositId);
-		}
-	}
-);*/
-
-function getFullScreen(ACCESS_TOKEN, depositId) {
-
-	html2canvas(document.body).then(function (canvas) {
-
-		canvas.toBlob(function (blob) {
-
-			// create File variable for screenshot
-			const imgFile = new File([blob], 'ranking-snapshot-page1.png', { type: 'image/png' });
-
-			const formData = new FormData();
-
-			// Upload the screenshot file to the the deposit
-			formData.append("file", imgFile);
-
-			fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/files`, {
-				method: "POST",
-				headers: {
-					Authorization: `Bearer ${ACCESS_TOKEN}`,
-				},
-				body: formData,
-			})
-				.then((response) => response.json())
-				.then((data) => {
-					console.log("File uploaded successfully:", data);
-
-					chrome.runtime.sendMessage({
-						message: "Uploaded Screenshot",
-						payload: {
-							depositId: depositId,
-							ACCESS_TOKEN: ACCESS_TOKEN,
-						}
-					})
-				})
-				.catch((error) => {
-					console.error("Error uploading file:", error);
-				});
-		});
-
-	});
-
-}
 
 function hashCode(s) {
 	let h = 0, l = s.length, i = 0;

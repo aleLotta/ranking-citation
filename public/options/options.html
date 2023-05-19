@@ -17,7 +17,8 @@
 
             <fieldset>
                 <legend>Zenodo metadata:</legend>
-                Insert the ACCESS_TOKEN that you can obtain through Zenodo, and also the name, orcid and affiliation for the
+                Insert the ACCESS_TOKEN that you can obtain through Zenodo, and also the name, orcid and affiliation for
+                the
                 deposit<br><br>
                 <label for="atoken">Access Token(*):</label><br>
                 <input type="text" id="atoken" name="atoken" required><br>
@@ -28,7 +29,13 @@
                 <label for="orcid">ORCID(*):</label><br>
                 <input type="text" id="orcid" name="orcid" required><br>
                 <label for="affiliation">Affiliation:</label><br>
-                <input type="text" id="affiliation" name="affiliation" value="Unipd"><br><br>
+                <input type="text" id="affiliation" name="affiliation" value="Unipd"><br>
+                
+                <h3>Upload Destination(*)</h3>
+                <input type="radio" name="upload_destination" value="zenodo" id="zenodo" required>
+                <label for="zenodo">Zenodo <a href="https://zenodo.org/" target="_blank">(https://zenodo.org/)</a></label><br>
+                <input type="radio" name="upload_destination" value="zenodoSandbox" id="zenodoSandbox">
+                <label for="zenodoSandbox">Zenodo Sandbox <a href="https://sandbox.zenodo.org/" target="_blank">(https://sandbox.zenodo.org/)</a></label><br>
             </fieldset>
 
             <fieldset>

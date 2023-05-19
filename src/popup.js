@@ -5,6 +5,63 @@ import './popup.css';
 // Set of the keys for the citation already stored
 const keySet = new Set();
 
+// Publish after the uploading of the screenshots
+let screenshotCount = 0;
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.message === "Uploaded Screenshot") {
+		screenshotCount++;
+
+		if (screenshotCount == request.payload.nPages) {
+			const { payload: { depositId, ACCESS_TOKEN, uploadDestination } } = request;
+
+			var publish = confirm(`The deposit has been uploaded to ${uploadDestination}. 
+			\nAre you sure you want to publish the deposit? This operation is not reversible`);
+
+			if (publish) {
+				console.log("Deposit will be published");
+				// post the deposit on Zenodo
+				fetch(`${uploadDestination}api/deposit/depositions/${depositId}/actions/publish`, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${ACCESS_TOKEN}`,
+					},
+				})
+					.then((response) => response.json())
+					.then((data) => {
+						console.log("Deposit published successfully:", data);
+
+						const depositDOI = data.doi;
+						const creators = data.metadata.creators;
+						const title = data.metadata.title;
+						const publication_date = data.metadata.publication_date;
+						const publisher = "Zenodo";
+
+						let creatorsText = "";
+						for (let author of creators) {
+							creatorsText += author.name + ", "
+						}
+						creatorsText = creatorsText.slice(0, -2);
+						//const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
+						//	". (Version " + version + "). ";
+						const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". ";
+
+						chrome.storage.sync.set({ [depositDOI]: citation }).then(() => {
+							//console.log("Value is set to " + citation);
+						});
+
+						updateCitations(depositDOI);
+
+					})
+					.catch((error) => {
+						console.error("Error publishing deposit:", error);
+					});
+			} else {
+				console.log("Publishing canceled");
+			}
+		}
+	}
+});
+
 document.addEventListener("DOMContentLoaded", function (event) {
 
 	// implement the fact that this is returned if the page is not the correct URL
@@ -49,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 				});
 			});
 
-			// receive deposit content from background script
+			/*// receive deposit content from background script
 			chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 				if (request.message === "DEPOSIT DATA") {
 					const depositDOI = request.payload.depositDOI;
@@ -75,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 					updateCitations(depositDOI);
 
 				}
-			});
+			});*/
 
 			//chrome.storage.sync.clear(function () {
 			//	let error = chrome.runtime.lastError;

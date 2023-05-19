@@ -133,6 +133,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log("Adding page screenshot");
         const ACCESS_TOKEN = request.payload.token;
         const depositId = request.payload.depositId;
+        const uploadDestination = request.payload.uploadDestination;
 
         html2canvas(document.body).then(function (canvas) {
 
@@ -146,7 +147,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 // Upload the screenshot file to the the deposit
                 formData.append("file", imgFile);
 
-                fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/files`, {
+                fetch(`${uploadDestination}api/deposit/depositions/${depositId}/files`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -163,6 +164,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                     depositId: depositId,
                                     ACCESS_TOKEN: ACCESS_TOKEN,
                                     nPages: nPages,
+                                    uploadDestination: uploadDestination,
                                 }
                             });
                         //}

@@ -3,44 +3,52 @@ chrome.runtime.onInstalled.addListener(() => {
 	chrome.runtime.openOptionsPage();
 });
 
-// Publish after the uploading of the screenshots
+/*// Publish after the uploading of the screenshots
 let screenshotCount = 0;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === "Uploaded Screenshot") {
 		screenshotCount++;
 
 		if (screenshotCount == request.payload.nPages) {
-			const { payload: { depositId, ACCESS_TOKEN } } = request;
+			const { payload: { depositId, ACCESS_TOKEN, uploadDestination } } = request;
 
-			// post the deposit on Zenodo
-			fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/actions/publish`, {
-				method: "POST",
-				headers: {
-					Authorization: `Bearer ${ACCESS_TOKEN}`,
-				},
-			})
-				.then((response) => response.json())
-				.then((data) => {
-					console.log("Deposit published successfully:", data);
+			var publish = confirm(`The deposit has been uploaded to ${uploadDestination}. 
+			\nAre you sure you want to publish the deposit? This operation is not reversible`);
 
-					// send to popup for citation
-					chrome.runtime.sendMessage({
-						message: "DEPOSIT DATA",
-						payload: {
-							depositDOI: data.doi,
-							creators: data.metadata.creators,
-							title: data.metadata.title,
-							publication_date: data.metadata.publication_date,
-							publisher: "Zenodo"
-						}
-					})
+			if (publish) {
+				console.log("Deposit will be published");
+				// post the deposit on Zenodo
+				fetch(`${uploadDestination}api/deposit/depositions/${depositId}/actions/publish`, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${ACCESS_TOKEN}`,
+					},
 				})
-				.catch((error) => {
-					console.error("Error publishing deposit:", error);
-				});
+					.then((response) => response.json())
+					.then((data) => {
+						console.log("Deposit published successfully:", data);
+
+						// send to popup for citation
+						chrome.runtime.sendMessage({
+							message: "DEPOSIT DATA",
+							payload: {
+								depositDOI: data.doi,
+								creators: data.metadata.creators,
+								title: data.metadata.title,
+								publication_date: data.metadata.publication_date,
+								publisher: "Zenodo"
+							}
+						})
+					})
+					.catch((error) => {
+						console.error("Error publishing deposit:", error);
+					});
+			} else {
+				console.log("Publishing canceled");
+			}
 		}
 	}
-});
+});*/
 
 let data;
 let queryText, searchSystem;
@@ -130,7 +138,7 @@ function uploadData(data) {
 
 	console.log('Start updating data');
 
-	chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', 'orcid', 'keywords', 'otherAuthors', 'nPages'], function (items) {
+	chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', 'orcid', 'keywords', 'otherAuthors', 'nPages', 'uploadDestination'], function (items) {
 		const ACCESS_TOKEN = items.accessToken;
 		const ZENODO_USER = items.firstName + " " + items.lastName;
 		const AFFILIATION = items.affiliation;
@@ -140,6 +148,8 @@ function uploadData(data) {
 		const otherAuthors = items.otherAuthors ? items.otherAuthors.split(";") : '';
 
 		const nPages = items.nPages;
+
+		const uploadDestination = items.uploadDestination;
 
 		const currentTimeStamp = new Date();
 
@@ -288,7 +298,7 @@ function uploadData(data) {
 			},
 		};
 
-		fetch("https://sandbox.zenodo.org/api/deposit/depositions", {
+		fetch(`${uploadDestination}api/deposit/depositions`, {
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -306,7 +316,7 @@ function uploadData(data) {
 				const formData = new FormData();
 				formData.append("file", dataFile);
 
-				fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/files`, {
+				fetch(`${uploadDestination}api/deposit/depositions/${depositId}/files`, {
 					method: "POST",
 					headers: {
 						Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -325,7 +335,7 @@ function uploadData(data) {
 				const formData2 = new FormData();
 				formData2.append("file", crateFile);
 
-				fetch(`https://sandbox.zenodo.org/api/deposit/depositions/${depositId}/files`, {
+				fetch(`${uploadDestination}api/deposit/depositions/${depositId}/files`, {
 					method: "POST",
 					headers: {
 						Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -347,7 +357,8 @@ function uploadData(data) {
 							message: `ADD SCREENSHOT${nPages - page + 1}`,
 							payload: {
 								token: ACCESS_TOKEN,
-								depositId: depositId
+								depositId: depositId,
+								uploadDestination: uploadDestination,
 							}
 						});
 					});
