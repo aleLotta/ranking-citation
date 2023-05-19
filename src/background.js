@@ -226,17 +226,29 @@ function uploadData(data) {
 
 		const tempDate = new Date;
 		const pub_date = tempDate.toISOString().split('T')[0];
+		const options = { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+		const pub_datetime = tempDate.toLocaleString('en-US', options);
 
 		const TITLE = "Ranking snapshot for the query \"" + queryText + "\" performed on " + searchSystem;
-		const NOTES = "This citation is produced using the Unipd Ranking Citation Tool. \n" +
+		/*const NOTES = "This citation is created using the Unipd Ranking Citation Tool. \n" +
 			"Available at https://rankingcitation.dei.unipd.it , \n" +
-			"created by professor Gianmaria Silvello and student Alessandro Lotta of the University of Padua.";
-		const DESCRIPTION = "This is a deposit containing the citation captured by the user " + ZENODO_USER + " from affiliation " + AFFILIATION +
-			" on date " + pub_date + " who executed the search query \"" + queryText + "\" on the system " + searchSystem + ".\n" +
+			"created by Gianmaria Silvello and Alessandro Lotta (University of Padua).";
+		const DESCRIPTION = "This is a deposit containing the citation captured by the user " + ZENODO_USER + " from " + AFFILIATION +
+			" at " + pub_datetime + " who executed the search query \"" + queryText + "\" on the system " + searchSystem + ".\n" +
 			"The number of pages captured is " + nPages + ".\n" +
 			"The data contained in the results obtained from the search query is then saved in the output-data.jsonld file. " +
 			"The deposit also contains the screenshots of the results in PNG format and the metadata for the Research Object Crate in JSON format.\n" +
-			NOTES;
+			NOTES;*/
+		const NOTES = `The citation snapshot presented here is generated using the Unipd Ranking Citation Tool, 
+				a tool developed by Gianmaria Silvello and Alessandro Lotta (University of Padua). 
+				This tool, accessible at https://rankingcitation.dei.unipd.it`;
+		const DESCRIPTION = `This deposit provides a snapshot of results obtained through a ${searchSystem} search query
+				on the topic of "${queryText}". The search was performed by ${ZENODO_USER}, from ${AFFILIATION}, on ${pub_datetime}. 
+				The captured data includes ${nPages} pages of search results, which have been saved in the output-data.jsonld file.
+				In addition to the citation data, the deposit includes PNG format screenshots of the search results, 
+				allowing visual reference to the captured information. 
+				The metadata for the Research Object Crate is also included in JSON format, providing essential details about the contents.
+				${NOTES}`;
 
 		let keywords = ["Unipd Ranking Citation Tool", queryText, searchSystem, "Ranking Snapshot"];
 		for (let el of NEW_KEYWORDS) {

@@ -50,12 +50,12 @@ chrome.storage.sync.get('nPages', (items) => {
             "rdfs:label": [{
                 "@value": "rank" + RANK_INDEX,
             }],
-            "@type": "cro:SearchResult",
+            "@type": "rco:SearchResult",
             "schema:title": title,
             "schema:url": resultURL,
-            "cro:authors": authors,
-            "cro:publicationYear": publicationYear,
-            "cro:currentPage": currPage,
+            "rco:authors": authors,
+            "rco:publicationYear": publicationYear,
+            "rco:currentPage": currPage,
         });
 
         RANK_INDEX++;

@@ -6,8 +6,11 @@ const vocab = "https://rankingcitation.dei.unipd.it";
 const ontology = vocab + "/ontology/";
 const resource = vocab + "/resource/";
 
-chrome.storage.sync.get(['nPages'], function (items) {
+chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (items) {
 	const nPages = items.nPages;
+	const firstName = items.firstName;
+	const lastName = items.lastName;
+	const orcid = items.orcid;
 
 	chrome.runtime.onMessage.addListener(
 		function (request, sender, sendResponse) {
@@ -24,66 +27,81 @@ chrome.storage.sync.get(['nPages'], function (items) {
 					},
 
 					{
-						"@id": "cro:SearchResult",
+						"@id": "rco:SearchResult",
 						"@type": ["owl:Class"]
 					},
 					{
-						"@id": "cro:System",
+						"@id": "rco:System",
 						"@type": ["owl:Class"]
 					},
 					{
-						"@id": "cro:SearchQuery",
+						"@id": "rco:SearchQuery",
 						"@type": ["owl:Class"]
 					},
 					{
-						"@id": "cro:RankingSnapshot",
+						"@id": "rco:RankingSnapshot",
 						"@type": ["owl:Class"]
 					},
 					{
-						"@id": "cro:UserSettings",
+						"@id": "rco:Settings",
+						"@type": ["owl:Class"]
+					},
+					{
+						"@id": "rco:User",
+						"@type": ["owl:Class"]
+					},
+					{
+						"@id": "foaf:Person",
 						"@type": ["owl:Class"]
 					},
 
 					{
-						"@id": "cro:fromSystem",
+						"@id": "rco:fromSystem",
 						"@type": ["owl:ObjectProperty"]
 					},
 					{
-						"@id": "cro:appliedTo",
+						"@id": "rco:executedBy",
 						"@type": ["owl:ObjectProperty"]
 					},
 					{
-						"@id": "cro:produces",
+						"@id": "rco:produces",
 						"@type": ["owl:ObjectProperty"]
 					},
 					{
-						"@id": "cro:hasResult",
+						"@id": "rco:hasResult",
 						"@type": ["owl:ObjectProperty"]
 					},
 					{
-						"@id": "cro:belongsTo",
+						"@id": "rco:belongsTo",
 						"@type": ["owl:ObjectProperty"]
 					},
 					{
-						"@id": "cro:hasSettings",
+						"@id": "rco:hasSettings",
+						"@type": ["owl:ObjectProperty"]
+					},
+					{
+						"@id": "rco:performs",
+						"@type": ["owl:ObjectProperty"]
+					},
+					{
+						"@id": "rdfs:subClassOf",
 						"@type": ["owl:ObjectProperty"]
 					},
 
-
 					{
-						"@id": "cro:dateTime",
+						"@id": "rco:dateTime",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:queryText",
+						"@id": "rco:queryText",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:language",
+						"@id": "rco:language",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:filters",
+						"@id": "rco:filters",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
@@ -95,49 +113,65 @@ chrome.storage.sync.get(['nPages'], function (items) {
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:authors",
+						"@id": "schema:name",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:publicationYear",
+						"@id": "rco:authors",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:description",
+						"@id": "rco:publicationYear",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:isLogged",
+						"@id": "rco:description",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:country",
+						"@id": "rco:isLogged",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:browser",
+						"@id": "rco:country",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:browserVersion",
+						"@id": "rco:browser",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:browserLanguage",
+						"@id": "rco:browserVersion",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:userOS",
+						"@id": "rco:browserLanguage",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:currentPage",
+						"@id": "rco:userOS",
 						"@type": "owl:DatatypeProperty"
 					},
 					{
-						"@id": "cro:nPages",
+						"@id": "rco:currentPage",
 						"@type": "owl:DatatypeProperty"
 					},
+					{
+						"@id": "rco:nPages",
+						"@type": "owl:DatatypeProperty"
+					},
+					{
+						"@id": "rco:userName",
+						"@type": "owl:DatatypeProperty"
+					},
+
+					{
+						"@id": "foaf:Person",
+						"@rdfs:subClassOf": [{
+							"@id": "rco:User",
+						}]
+					}
+
 				);
 
 				/**
@@ -188,25 +222,7 @@ chrome.storage.sync.get(['nPages'], function (items) {
 					filters.push('Any type');
 				} else { filters.push('Review articles'); }
 
-
-				/*const queryText = pageTitle.split('-')[0];
-				const language = URL.split('?')[1].split('&')[0].slice(3);
-				const patentsFilter = document.getElementsByClassName('gs_cb_gen gs_in_cb gs_md_li')[0] ?? null;
-				const allFilters = document.querySelectorAll('.gs_ind.gs_bdy_sb_sel');
-				const filters = [];
-				for (let j = 0; j < allFilters.length; j++) {
-					filters.push(allFilters[j].innerText);
-				}
-				if (patentsFilter) {
-					if (patentsFilter.getAttribute("aria-checked")) {
-						filters.push("Include patents");
-					} else {
-						filters.push("Don't include patents");
-					}
-				}*/
-
-
-				// Data for User Settings
+				// Data for Settings
 				const loginElement = document.getElementById("gs_hdr_act_i");
 				let isLogged = false;
 				if (loginElement) isLogged = true;
@@ -216,14 +232,19 @@ chrome.storage.sync.get(['nPages'], function (items) {
 				const browserVersion = userData.brands[1].version;
 				const browserLanguage = navigator.language;
 
-				let rankingId = "ranking[" + timestamp + "]"
+				// Data for User
+				const userName = firstName + ' ' + lastName;
+
+
+				let rankingId = "ranking-" + timestamp + "-" + userName
 				rankingId = hashCode(rankingId);
-				let queryId = queryText.toLowerCase().trim().replaceAll(" ", "-") + "[" + timestamp + "]";
+				let queryId = queryText.toLowerCase().trim().replaceAll(" ", "-");
 				queryId = hashCode(queryId);
-				let resultListId = "resultList[" + timestamp + "]";
+				let resultListId = "resultList-" + timestamp + "-" + userName;
 				resultListId = hashCode(resultListId);
-				let userSetId = "userSettings[" + timestamp + "]";
-				userSetId = hashCode(userSetId);
+				let settingsId = "settings-" + timestamp + "-" + userName;
+				settingsId = hashCode(settingsId);
+				let userId = orcid;
 
 				// Add individuals to the model
 				data.push(
@@ -232,24 +253,24 @@ chrome.storage.sync.get(['nPages'], function (items) {
 						"rdfs:label": [{
 							"@value": "ranking[" + dateString + "]"
 						}],
-						"@type": "cro:RankingSnapshot",
-						"cro:dateTime": date,
-						"cro:nPages": nPages
+						"@type": "rco:RankingSnapshot",
+						"rco:dateTime": date,
+						"rco:nPages": parseInt(nPages,10)
 					},
 					{
 						"@id": "http://" + baseURL,
-						"@type": "cro:System",
-						"cro:name": name
+						"@type": "rco:System",
+						"schema:name": name
 					},
 					{
 						"@id": resource + queryId,
 						"rdfs:label": [{
 							"@value": queryText.toLowerCase().trim().replaceAll(" ", "-"),
 						}],
-						"@type": "cro:SearchQuery",
-						"cro:queryText": queryText,
-						"cro:language": language,
-						"cro:filters": filters
+						"@type": "rco:SearchQuery",
+						"rco:queryText": queryText,
+						"rco:language": language,
+						"rco:filters": filters
 					},
 					{
 						"@id": "rdf:List",
@@ -263,46 +284,63 @@ chrome.storage.sync.get(['nPages'], function (items) {
 						"@type": "rdf:List"
 					},
 					{
-						"@id": resource + userSetId,
+						"@id": resource + settingsId,
 						"rdfs:label": [{
-							"@value": "userSettings[" + dateString + "]",
+							"@value": "settings[" + dateString + "]",
 						}],
-						"@type": "cro:UserSettings",
-						"cro:isLogged": isLogged,
-						"cro:browserLanguage": browserLanguage,
-						"cro:browser": browser,
-						"cro:browserVersion": browserVersion,
-						"cro:userOS": userOS,
-					}
+						"@type": "rco:Settings",
+						"rco:isLogged": isLogged,
+						"rco:browserLanguage": browserLanguage,
+						"rco:browser": browser,
+						"rco:browserVersion": browserVersion,
+						"rco:userOS": userOS,
+					},
+					{
+						"@id": userId,
+						"rdfs:label": [{
+							"@value": "user",
+						}],
+						"@type": "rco:User",
+						"rco:userName": userName,
+					},
 				);
 
 				// add Object Properties to the model
 				data.push(
 					{
 						"@id": resource + rankingId,
-						"cro:fromSystem": [{ "@id": "http://" + baseURL }],
+						"rco:fromSystem": [{ "@id": "http://" + baseURL }],
 					},
 					{
 						"@id": resource + queryId,
-						"cro:appliedTo": [{ "@id": "http://" + baseURL }]
+						"rco:executedBy": [{ "@id": "http://" + baseURL }]
 					},
 					{
 						"@id": resource + queryId,
-						"cro:produces": [{ "@id": resource + rankingId }]
+						"rco:produces": [{ "@id": resource + rankingId }]
 					},
 					{
 						"@id": resource + rankingId,
-						"cro:hasResult": [{ "@id": resource + resultListId }]
+						"rco:hasResult": [{ "@id": resource + resultListId }]
 					},
 					{
 						"@id": resource + resultListId,
-						"cro:belongsTo": [{ "@id": resource + rankingId }]
+						"rco:belongsTo": [{ "@id": resource + rankingId }]
 					},
 					{
 						//"@id": "http://" + baseURL,
 						"@id": resource + queryId,
-						"cro:hasSettings": [{ "@id": resource + userSetId }]
-					}
+						"rco:hasSettings": [{ "@id": resource + settingsId }]
+					},
+					{
+						"@id": userId,
+						"rco:performs": [{ "@id": resource + queryId }]
+					},
+					{
+						"@id": userId,
+						"rco:hasSettings": [{ "@id": resource + settingsId }]
+					},
+
 				);
 
 				const results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
@@ -318,12 +356,13 @@ chrome.storage.sync.get(['nPages'], function (items) {
 
 				const outputData = {
 					"@context": {
-						"cro": ontology,
+						"rco": ontology,
 						"@vocab": resource,
 						"schema": "https://schema.org/",
 						"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 						"rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-						"owl": "http://www.w3.org/2002/07/owl#"
+						"owl": "http://www.w3.org/2002/07/owl#",
+						"foaf": "http://xmlns.com/foaf/0.1/#"
 					},
 					"@graph": data
 				};
