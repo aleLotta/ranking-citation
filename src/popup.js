@@ -34,7 +34,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 						const creators = data.metadata.creators;
 						const title = data.metadata.title;
 						const publication_date = data.metadata.publication_date;
-						const publisher = "Zenodo";
+						const publisher = uploadDestination.includes('sandbox') ? "Zenodo Sandbox" : "Zenodo";
 
 						let creatorsText = "";
 						for (let author of creators) {
@@ -57,6 +57,42 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 					});
 			} else {
 				console.log("Publishing canceled");
+
+				const apiUrl = `${uploadDestination}api/deposit/depositions/${depositId}`;
+
+				fetch(apiUrl, {
+					headers: {
+						'Content-Type': 'application/json',
+						'Authorization': `Bearer ${ACCESS_TOKEN}`
+					}
+				})
+					.then(response => response.json())
+					.then(data => {
+
+						const creators = data.metadata.creators;
+						const title = data.metadata.title;
+						const publication_date = data.metadata.publication_date;
+						const publisher = uploadDestination.includes('sandbox') ? "Zenodo Sandbox" : "Zenodo";
+
+						let creatorsText = "";
+						for (let author of creators) {
+							creatorsText += author.name + ", "
+						}
+						creatorsText = creatorsText.slice(0, -2);
+						//const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
+						//	". (Version " + version + "). ";
+						const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". ";
+
+						chrome.storage.sync.set({ [depositId]: citation }).then(() => {
+							//console.log("Value is set to " + citation);
+
+							updateCitations(String(depositId));
+						});
+
+					})
+					.catch(error => {
+						console.error('Error:', error);
+					});
 			}
 		}
 	}
@@ -183,31 +219,50 @@ function updateCitations(key) {
 	chrome.storage.sync.get([key]).then((result) => {
 		if (!(keySet.has(key))) {
 			const citationDiv = document.createElement("div");
-			citationDiv.className = "citation";
 			const citationText = document.createElement("div");
-			//citationText .className = "citation";
 			citationText.innerHTML = result[key];
-			const citationLink = "https://doi.org/" + key;
+			let citationLink
+			const uploadDestination = result[key].includes('Sandbox') ? "https://sandbox.zenodo.org/" : "https://zenodo.org/";
+
+			const buttonsDiv = document.createElement("div");
+			buttonsDiv.id = 'buttonsDiv';
+
+			if (key.includes('zenodo')) {
+				citationDiv.className = "citation";
+				citationLink = "https://doi.org/" + key;
+
+				const copyButton = document.createElement("i");
+				copyButton.className = "fa fa-copy";
+				copyButton.id = "copyBtn";
+				copyButton.addEventListener('click', () => {
+					const text = citationText.innerText;
+					navigator.clipboard.writeText(text).then(() => {
+						console.log('Copied "${text}" to clipboard');
+						copyButton.style = "color:green";
+					});
+				});
+				buttonsDiv.appendChild(copyButton);
+
+			} else {
+				citationDiv.className = "temp-citation";
+				citationDiv.id = `temp${key}`;
+				citationLink = `${uploadDestination}deposit/${key}`;
+
+				const publishBtn = document.createElement("b");
+				publishBtn.textContent = 'Publish';
+				publishBtn.id = "publishBtn";
+				publishBtn.addEventListener('click', function () {
+					publishTempCitation(key, uploadDestination);
+				});
+				buttonsDiv.appendChild(publishBtn);
+			}
+
 			const citationAnchor = document.createElement("a");
 			citationAnchor.href = citationLink;
 			citationAnchor.innerHTML = citationLink;
 			citationAnchor.target = "_blank";
 			citationText.appendChild(citationAnchor);
 			citationDiv.appendChild(citationText);
-
-			// button to copy the citation
-			const buttonsDiv = document.createElement("div");
-			buttonsDiv.id = 'buttonsDiv';
-			const copyButton = document.createElement("i");
-			copyButton.className = "fa fa-copy";
-			copyButton.id = "copyBtn";
-			copyButton.addEventListener('click', () => {
-				const text = citationText.innerText;
-				navigator.clipboard.writeText(text).then(() => {
-					console.log('Copied "${text}" to clipboard');
-					copyButton.style = "color:green";
-				})
-			})
 
 			const removeCitBtn = document.createElement('i');
 			removeCitBtn.className = "fa fa-remove";
@@ -217,7 +272,6 @@ function updateCitations(key) {
 				citationDiv.remove();
 			})
 
-			buttonsDiv.appendChild(copyButton);
 			buttonsDiv.appendChild(removeCitBtn);
 			citationDiv.appendChild(buttonsDiv);
 
@@ -228,6 +282,62 @@ function updateCitations(key) {
 		else {
 			console.log(key);
 			alert("Ranking Already Captured");
+		}
+	});
+}
+
+function publishTempCitation(depositId, uploadDestination) {
+	chrome.storage.sync.get('accessToken', (items) => {
+		const ACCESS_TOKEN = items.accessToken;
+
+		var publish = confirm(`The deposit has been uploaded to ${uploadDestination}. 
+			\nAre you sure you want to publish the deposit? This operation is not reversible`);
+
+		if (publish) {
+			console.log("Deposit will be published");
+
+			// post the deposit on Zenodo
+			fetch(`${uploadDestination}api/deposit/depositions/${depositId}/actions/publish`, {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${ACCESS_TOKEN}`,
+				},
+			})
+				.then((response) => response.json())
+				.then((data) => {
+					console.log("Deposit published successfully:", data);
+
+					// remove previous temp citation
+					document.getElementById(`temp${depositId}`).remove();
+
+					const depositDOI = data.doi;
+					const creators = data.metadata.creators;
+					const title = data.metadata.title;
+					const publication_date = data.metadata.publication_date;
+					const publisher = uploadDestination.includes('sandbox') ? "Zenodo Sandbox" : "Zenodo";
+
+					let creatorsText = "";
+					for (let author of creators) {
+						creatorsText += author.name + ", "
+					}
+					creatorsText = creatorsText.slice(0, -2);
+					//const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
+					//	". (Version " + version + "). ";
+					const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". ";
+
+					chrome.storage.sync.set({ [depositDOI]: citation }).then(() => {
+						//console.log("Value is set to " + citation);
+					});
+					chrome.storage.sync.remove([String(depositId)])
+
+					updateCitations(depositDOI);
+
+				})
+				.catch((error) => {
+					console.error("Error publishing deposit:", error);
+				});
+		} else {
+			console.log('Deposit not published');
 		}
 	});
 }

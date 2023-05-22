@@ -196,17 +196,20 @@ function uploadData(data) {
 					"encodingFormat": "application/json",
 					"name": "result data"
 				},
-				{
-					"@id": "ranking-snapshot.png",
-					"@type": "File",
-					"author": {
-						"@id": user_id
-					},
-					"encodingFormat": "image/png",
-					"name": "screenshot"
-				},
 				user
 			]
+		}
+
+		for (let page = 1; page <= nPages; page++) {
+			RC['@graph'].push({
+				"@id": `ranking-snapshot-page${page}.png`,
+				"@type": "File",
+				"author": {
+					"@id": user_id
+				},
+				"encodingFormat": "image/png",
+				"name": "screenshot"
+			},)
 		}
 
 		// Send response to popup script

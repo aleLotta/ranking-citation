@@ -30,6 +30,17 @@
   box-sizing: border-box;
 }
 
+.temp-citation {
+  /*background-color: rgba(219, 255, 242, 0.523);*/
+  background-color: rgb(255, 247, 219);
+  margin: 5px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 #warningPara {
   color: red;
   display: flex;
@@ -76,6 +87,16 @@ hr {
 }
 
 #copyBtn:hover {
+  color: black;
+}
+
+#publishBtn {
+  margin: 0 5px 0 7px;
+  font-size: 10px;
+  color: #0000007d;
+}
+
+#publishBtn:hover {
   color: black;
 }
 

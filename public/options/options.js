@@ -164,7 +164,7 @@ function saveOptions(event) {
     let orcid = document.getElementById("orcid").value;
     let keywordsElement = document.getElementsByClassName("keyText");
     let nPages = document.getElementById("n-pages").value;
-    
+
     let zenodoRadio = document.getElementById('zenodo');
     let zenodoSandboxRadio = document.getElementById('zenodoSandbox');
     let uploadDestination;
