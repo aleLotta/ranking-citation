@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		let currentUrl = tabs[0].url;
 
-		if (currentUrl.match('https://scholar.google.com/scholar*') || currentUrl.match('https://twitter.com/search*')) {
+		if (currentUrl.match('https://scholar.google.com/scholar*') || currentUrl.match('https://www.google.com/search*')) {
 
 			document.getElementById('content').innerHTML += '<button id="captureBtn">Capture Snapshot</button>';
 

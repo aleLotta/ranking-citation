@@ -17,7 +17,8 @@
     "default_popup": "popup.html"
   },
   "host_permissions": [
-    "https://scholar.google.com/scholar*"
+    "https://scholar.google.com/scholar*",
+    "https://www.google.com/search*"
   ],
   "permissions": [
     "tabs",
@@ -28,11 +29,12 @@
   "content_scripts": [
     {
       "matches": [
-        "https://scholar.google.com/scholar*"
+        "https://scholar.google.com/scholar*",
+        "https://www.google.com/search*"
       ],
       "run_at": "document_idle",
       "js": [
-        "contentScript.js"
+        "contentGoogle.js"
       ]
     }
   ],

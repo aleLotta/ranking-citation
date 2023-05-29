@@ -3,53 +3,6 @@ chrome.runtime.onInstalled.addListener(() => {
 	chrome.runtime.openOptionsPage();
 });
 
-/*// Publish after the uploading of the screenshots
-let screenshotCount = 0;
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.message === "Uploaded Screenshot") {
-		screenshotCount++;
-
-		if (screenshotCount == request.payload.nPages) {
-			const { payload: { depositId, ACCESS_TOKEN, uploadDestination } } = request;
-
-			var publish = confirm(`The deposit has been uploaded to ${uploadDestination}. 
-			\nAre you sure you want to publish the deposit? This operation is not reversible`);
-
-			if (publish) {
-				console.log("Deposit will be published");
-				// post the deposit on Zenodo
-				fetch(`${uploadDestination}api/deposit/depositions/${depositId}/actions/publish`, {
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${ACCESS_TOKEN}`,
-					},
-				})
-					.then((response) => response.json())
-					.then((data) => {
-						console.log("Deposit published successfully:", data);
-
-						// send to popup for citation
-						chrome.runtime.sendMessage({
-							message: "DEPOSIT DATA",
-							payload: {
-								depositDOI: data.doi,
-								creators: data.metadata.creators,
-								title: data.metadata.title,
-								publication_date: data.metadata.publication_date,
-								publisher: "Zenodo"
-							}
-						})
-					})
-					.catch((error) => {
-						console.error("Error publishing deposit:", error);
-					});
-			} else {
-				console.log("Publishing canceled");
-			}
-		}
-	}
-});*/
-
 let data;
 let queryText, searchSystem;
 // Check if popup as said to start RO creation
@@ -67,28 +20,66 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 });
 
-let newData = []
+let newData = new Array();
 let newDataCounter = 0;
+let prevBNode = 0;
 // Add the data from the additional pages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === 'NEW DATA') {
 		const dataToAdd = request.payload.newData;
 		for (let d in dataToAdd) {
 			data['@graph'].push(dataToAdd[d]);
+			//console.log('newData',newData);
+			//newData.push(dataToAdd[d]);
 		}
+		if (request.payload.source === 'Google Search') {
+			//newData = adjustRanks(newData);
+		}
+		//data['@graph'].push(newData);
 		newDataCounter++;
 		if (newDataCounter == request.payload.nPages) {
+			if (request.payload.source === 'Google Search') {
+				console.log(data);
+				//adjustRanks(data);
+			}
 			uploadData(data);
 		}
 	}
-	/*if (request.message === 'LAST PAGE') {
-		const dataToAdd = request.payload.newData;
-		for (let d in dataToAdd) {
-			data['@graph'].push(dataToAdd[d]);
-		}
-		uploadData(data);
-	}*/
 });
+
+function adjustRanks(data) {
+	console.log(data);
+
+	let currBNodeIndex = 1;
+	let lastIndex = data.length - 1;
+
+	for (let i = 1; i <= lastIndex; i++) {
+		data[i]['rdfs:label'] = [{ '@value': `rank${currBNodeIndex}` }];
+		if (i === lastIndex) {
+			data.push({
+				"@id": `_:bnode${currBNodeIndex}`,
+				"rdf:first": { "@id": data[i]['@id'] },
+				"rdf:rest": { "@id": `rdf:nil` }
+			});
+		} else {
+			data.push(
+				{ '@id': `_:bnode${currBNodeIndex + 1}`, '@type': 'rdf:List' },
+				{
+					"@id": `_:bnode${currBNodeIndex}`,
+					"rdf:first": { "@id": data[i]['@id'] },
+					"rdf:rest": { "@id": `_:bnode${currBNodeIndex + 1}` }
+				}
+			);
+		}
+		currBNodeIndex++;
+	}
+}
+
+function containsObject(obj, target) {
+	//var objString = JSON.stringify(obj);
+	var targetString = JSON.stringify(target);
+	return objString.includes(targetString);
+}
 
 async function getPagesRanks(nPages) {
 	try {
@@ -96,21 +87,36 @@ async function getPagesRanks(nPages) {
 
 			const url = new URL(tabs[0].url);
 			const params = new URLSearchParams(url.search);
-			const patentsFilter = params.get('as_sdt') ?? '0.5';
+
+			let patentsFilter, languageFilter, sinceYearFilter,
+				untilYearFilter, sortByFilter, resultTypeFilter;
+			if (url.origin.includes('scholar')) {
+				patentsFilter = params.get('as_sdt') ?? '0.5';
+				languageFilter = params.get('hl') ?? navigator.language.split('-')[0];
+				sinceYearFilter = params.get('as_ylo') ?? '';
+				untilYearFilter = params.get('as_yhi') ?? '';
+				sortByFilter = params.get('scisbd') ?? '0';
+				resultTypeFilter = params.get('as_rr') ?? '0';
+			} else {
+				languageFilter = params.get('hl') ?? '';
+			}
 			const queryFilter = params.get('q');
-			const languageFilter = params.get('hl') ?? 'en';
-			const sinceYearFilter = params.get('as_ylo') ?? '';
-			const untilYearFilter = params.get('as_yhi') ?? '';
-			const sortByFilter = params.get('scisbd') ?? '0';
-			const resultTypeFilter = params.get('as_rr') ?? '0';
+
+			chrome.storage.sync.set({
+				bNodeIndex: 1,
+			})
 
 			for (let i = 0; i < nPages; i++) {
 
 				const startURL = 10 * i;
-				//const pageURL = `https://scholar.google.com/scholar?start=${startURL}&as_sdt=2007&q=cancer&hl=en`;
-				//const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=cancer&hl=en&as_sdt=0,5&as_vis=1`;
-				const pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=${queryFilter}&hl=${languageFilter}&as_sdt=${patentsFilter}&as_vis=1&` +
-					`as_ylo=${sinceYearFilter}&as_yhi${untilYearFilter}&scisbd=${sortByFilter}&as_rr=${resultTypeFilter}`;
+				let pageURL;
+				if (url.origin.includes('scholar')) {
+					pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=${queryFilter}&hl=${languageFilter}&as_sdt=${patentsFilter}&as_vis=1&` +
+						`as_ylo=${sinceYearFilter}&as_yhi${untilYearFilter}&scisbd=${sortByFilter}&as_rr=${resultTypeFilter}`;
+				} else {
+					pageURL = `${url}&start=${startURL}`;
+				}
+
 				chrome.tabs.create({ url: pageURL, active: false }, createdTab => {
 					chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
 						if (tabId === createdTab.id && info.url) {
@@ -120,7 +126,7 @@ async function getPagesRanks(nPages) {
 								target: {
 									tabId: tabId
 								},
-								files: ['Scholar/getOtherPages.js']
+								files: url.origin.includes('scholar') ? ['Scholar/getOtherPages.js'] : ['Google/getGoogleRanks.js']
 							});
 						}
 					});

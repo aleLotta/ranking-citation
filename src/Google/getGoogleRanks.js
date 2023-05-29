@@ -7,42 +7,32 @@ const start = params.get('start');
 const currPage = (start / 10) + 1;
 let nPages;
 
-chrome.storage.sync.get('nPages', (items) => {
+chrome.storage.sync.get(['nPages'], (items) => {
     nPages = items.nPages;
 
     console.log('currentPage ' + currPage);
 
-    const results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
+    const results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub))');
 
     let newData = [];
-    let BNODE_INDEX = (10 * (currPage - 1)) + 1;
+    //let BNODE_INDEX = (10 * (currPage - 1)) + 1;
+    //let BNODE_INDEX = items.bNodeIndex;
+    let BNODE_INDEX = 1;
     console.log('bnode' + BNODE_INDEX);
-    let RANK_INDEX = (10 * (currPage - 1)) + 1;
+    //let RANK_INDEX = (10 * (currPage - 1)) + 1;
+    //let RANK_INDEX = items.bNodeIndex;
+    let RANK_INDEX = 1;
     const vocab = "https://rankingcitation.dei.unipd.it";
     const ontology = vocab + "/ontology/";
     const resource = vocab + "/resource/";
 
-    ////// To edit /////
-    const timestamp = new Date();
-    let resultListId = "resultList[" + timestamp + "]";
-    resultListId = hashCode(resultListId);
-
     results.forEach((result) => {
 
-        if (result.innerText.startsWith('[CITATION]')) return;
-        const title = result.querySelector('h3>a').innerText;
-        const resultURL = result.querySelector('h3>a').href;
-        const context_el = result.querySelector('div.gs_a').innerText;
-        const splitContext = context_el.split('-');
-        const tempString = splitContext[splitContext.length - 2];
-        const publicationYear = parseInt(tempString.slice(tempString.length - 5, tempString.length - 1));
-
-        //const linked_authors = result.querySelectorAll('.gs_a>a');
-        const authors = splitContext[0].split(',').map((element) => {
-            element = element.trim();
-            element = element.replaceAll('…', '');
-            return element.replaceAll('&nbsp', '')
-        });
+        const title = result.querySelector('.yuRUbf>a>h3').innerText;
+        const resultURL = result.querySelector('.yuRUbf>a').href;
+        const publicationYear = result.querySelector('.MUxGbd.wuQ4Ob.WZ8Tjf') ?
+            result.querySelector('.MUxGbd.wuQ4Ob.WZ8Tjf').innerText.split(' ')[2] : '0';
+        const authors = result.querySelector('.VuuXrf').innerText;
 
         newData.push({
             //"@id": vocab + "result" + RESULT_INDEX,
@@ -65,15 +55,26 @@ chrome.storage.sync.get('nPages', (items) => {
 
 
         // Try with results.indexof(result) == results.length-1
-        if (BNODE_INDEX === (results.length) * nPages) {
-            const PREV_BNODE_INDEX = BNODE_INDEX - 1;
-            //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-            const prev_node = "_:bnode" + PREV_BNODE_INDEX;
-            newData.push({
-                "@id": prev_node,
-                "rdf:first": { "@id": resultURL },
-                "rdf:rest": { "@id": "rdf:nil" }
-            });
+        //if (BNODE_INDEX === (results.length) * nPages) {
+        if (Array.from(results).indexOf(result) === results.length - 1) {
+            if (currPage != nPages) {
+                const PREV_BNODE_INDEX = BNODE_INDEX - 1;
+                const prev_node = "_:bnode" + PREV_BNODE_INDEX;
+                newData.push({
+                    "@id": prev_node,
+                    "rdf:first": { "@id": resultURL },
+                    "rdf:rest": { "@id": `_:resultList${currPage + 1}` }
+                })
+            } else {
+                const PREV_BNODE_INDEX = BNODE_INDEX - 1;
+                const prev_node = "_:bnode" + PREV_BNODE_INDEX;
+                newData.push({
+                    "@id": prev_node,
+                    "rdf:first": { "@id": resultURL },
+                    "rdf:rest": { "@id": "rdf:nil" }
+                });
+            }
+
             return;
         }
 
@@ -83,13 +84,20 @@ chrome.storage.sync.get('nPages', (items) => {
         });
 
         if (BNODE_INDEX === 1) {
-            /*newData.push({
-                "@id": resource + resultListId,
-                "rdf:first": { "@id": resultURL },
-                "rdf:rest": { "@id": bnodeString }
-            });*/
-        }
-        else {
+            if (currPage != 1) {
+                newData.push(
+                    {
+                        '@id': `_:resultList${currPage}`,
+                        '@type': 'rdf:List'
+                    },
+                    {
+                        '@id': `_:resultList${currPage}`,
+                        'rdf:first': { '@id': resultURL },
+                        'rdf:rest': { '@id': bnodeString }
+                    }
+                );
+            }
+        } else {
             const PREV_BNODE_INDEX = BNODE_INDEX - 1;
             //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
             const prev_node = "_:bnode" + PREV_BNODE_INDEX;
@@ -102,6 +110,7 @@ chrome.storage.sync.get('nPages', (items) => {
         BNODE_INDEX++;
     });
 
+    console.log('newData');
     console.log(newData);
 
     /*if (currPage == nPages) {
@@ -119,14 +128,18 @@ chrome.storage.sync.get('nPages', (items) => {
             }
         })
     }*/
-    chrome.runtime.sendMessage({
-        message: 'NEW DATA',
-        payload: {
-            newData: newData,
-            nPages: nPages,
-            source: 'Google Scholar'
-        }
-    });
+    chrome.storage.sync.set({
+        bNodeIndex: RANK_INDEX
+    }).then(
+        chrome.runtime.sendMessage({
+            message: 'NEW DATA',
+            payload: {
+                newData: newData,
+                nPages: nPages,
+                source: 'Google Search'
+            }
+        })
+    );
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -135,6 +148,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const ACCESS_TOKEN = request.payload.token;
         const depositId = request.payload.depositId;
         const uploadDestination = request.payload.uploadDestination;
+
+        const sfooter = document.body.querySelector('#sfooter');
+        sfooter.style = 'display:none';
 
         html2canvas(document.body).then(function (canvas) {
 
@@ -159,15 +175,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     .then((data) => {
                         console.log("File uploaded successfully:", data);
                         //if (currPage == nPages) {
-                            chrome.runtime.sendMessage({
-                                message: "Uploaded Screenshot",
-                                payload: {
-                                    depositId: depositId,
-                                    ACCESS_TOKEN: ACCESS_TOKEN,
-                                    nPages: nPages,
-                                    uploadDestination: uploadDestination,
-                                }
-                            });
+                        chrome.runtime.sendMessage({
+                            message: "Uploaded Screenshot",
+                            payload: {
+                                depositId: depositId,
+                                ACCESS_TOKEN: ACCESS_TOKEN,
+                                nPages: nPages,
+                                uploadDestination: uploadDestination,
+                            }
+                        });
+
+                        sfooter.style = 'display:';
                         //}
                     })
                     .catch((error) => {

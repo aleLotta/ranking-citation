@@ -1,4 +1,3 @@
-import html2canvas from "html2canvas";
 
 let data;
 let pageTitle;
@@ -14,7 +13,7 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 	chrome.runtime.onMessage.addListener(
 		function (request, sender, sendResponse) {
-			if (request.message === "START PROVA") {
+			if (request.message === "START") {
 				console.log("Capturing Data");
 
 				data = [];
@@ -187,43 +186,48 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 				const tempUrl = document.location.href;
 				const baseURL = tempUrl.split('/')[2];
 				pageTitle = document.querySelector('title').innerText;
-				const name = pageTitle.split('-')[1].slice(1);
+				let name = pageTitle.split('-')[1].slice(1);
+				if (!name.includes('Scholar')) name = 'Google Search';
 
 				/**
 				 * Data for Search Query 
 				 */
 				const url = new URL(window.location.href);
 				const params = new URLSearchParams(url.search);
-				const patentsFilter = params.get('as_sdt') ?? '0.5';
 				const queryText = params.get('q');
-				const language = params.get('hl') ?? 'en';
-				const sinceYearFilter = params.get('as_ylo') ?? null;
-				const untilYearFilter = params.get('as_yhi') ?? null;
-				const sortByFilter = params.get('scisbd') ?? '0';
-				const resultTypeFilter = params.get('as_rr') ?? '0';
+				const language = params.get('hl') ?? navigator.language.split('-')[0];
 
 				const filters = [];
-				if (patentsFilter !== '0.5') {
-					filters.push("Include patents");
-				} else {
-					filters.push("Don't include patents");
-				}
+				if (name.includes('Scholar')) {
+					const patentsFilter = params.get('as_sdt') ?? '0.5';
+					const sinceYearFilter = params.get('as_ylo') ?? null;
+					const untilYearFilter = params.get('as_yhi') ?? null;
+					const sortByFilter = params.get('scisbd') ?? '0';
+					const resultTypeFilter = params.get('as_rr') ?? '0';
 
-				if ((!sinceYearFilter) && (!untilYearFilter)) {
-					filters.push('Any Time');
-				} else {
-					if (sinceYearFilter) filters.push(`Since year ${sinceYearFilter}`);
-					if (untilYearFilter) filters.push(`Until year ${untilYearFilter}`);
+					if (patentsFilter !== '0.5') {
+						filters.push("Include patents");
+					} else {
+						filters.push("Don't include patents");
+					}
+
+					if ((!sinceYearFilter) && (!untilYearFilter)) {
+						filters.push('Any Time');
+					} else {
+						if (sinceYearFilter) filters.push(`Since year ${sinceYearFilter}`);
+						if (untilYearFilter) filters.push(`Until year ${untilYearFilter}`);
+					}
+					if (sortByFilter === '0') {
+						filters.push('Sort by relevance');
+					} else { filters.push('Sort by date'); }
+					if (resultTypeFilter === '0') {
+						filters.push('Any type');
+					} else { filters.push('Review articles'); }
 				}
-				if (sortByFilter === '0') {
-					filters.push('Sort by relevance');
-				} else { filters.push('Sort by date'); }
-				if (resultTypeFilter === '0') {
-					filters.push('Any type');
-				} else { filters.push('Review articles'); }
 
 				// Data for Settings
-				const loginElement = document.getElementById("gs_hdr_act_i");
+				const loginElement = name.includes('Scholar') ? document.getElementById("gs_hdr_act_i") :
+					document.getElementsByClassName('gb_k gbii')[0];
 				let isLogged = false;
 				if (loginElement) isLogged = true;
 				const userData = navigator.userAgentData;
@@ -255,7 +259,7 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 						}],
 						"@type": "rco:RankingSnapshot",
 						"rco:dateTime": date,
-						"rco:nPages": parseInt(nPages,10)
+						"rco:nPages": parseInt(nPages, 10)
 					},
 					{
 						"@id": "http://" + baseURL,
@@ -343,9 +347,16 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 				);
 
-				const results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
-				const result = results[0]
-				const resultURL = result.querySelector('h3>a').href;
+				let results, result, resultURL;
+				if (name.includes('Scholar')) {
+					results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
+					result = results[0];
+					resultURL = result.querySelector('h3>a').href;
+				} else {
+					results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub))');
+					result = results[0];
+					resultURL = result.querySelector('.yuRUbf>a').href;
+				}
 				const bnodeString = "_:bnode1";
 
 				data.push({

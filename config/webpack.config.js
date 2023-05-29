@@ -11,8 +11,10 @@ const config = (env, argv) =>
     entry: {
       popup: PATHS.src + '/popup.js',
       contentScript: PATHS.src + '/contentScript.js',
+      contentGoogle: PATHS.src + '/contentGoogle.js',
       background: PATHS.src + '/background.js',
-      "Scholar/getOtherPages": PATHS.src + '/Scholar/getOtherPages.js'
+      "Scholar/getOtherPages": PATHS.src + '/Scholar/getOtherPages.js',
+      "Google/getGoogleRanks": PATHS.src + '/Google/getGoogleRanks.js',
     },
     devtool: argv.mode === 'production' ? false : 'source-map',
   });
