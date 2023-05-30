@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
     document.getElementById("addAuthors").addEventListener('click', addAuthor);
 
     // ADD default Keywords
-    const defaultKeywords = ["Unipd Citation Ranking Tool", "Ranking Snapshot", "${queryText}", "${searchSystem}"]
+    const defaultKeywords = ["Unipd Ranking Citation Tool", "Ranking Snapshot", "${queryText}", "${searchSystem}"]
     defaultKeywords.forEach(keyword => {
         const list = document.getElementById('keyword-list');
         const item = document.createElement('div');

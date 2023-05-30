@@ -236,12 +236,6 @@ function uploadData(data) {
 
 
 		// Upload to Zenodo
-		// NB: this needs to have deposit:write access
-		//let ACCESS_TOKEN = '1Rgx8cybYk1HwgqPFFlt0B9jsmPy5UKynS9lAUnswT6QjPVOBX6R0N4e5k9x';
-		//let SANDBOX_ACCESS_TOKEN = 'gIMBAgJMUri3Xld9mTkjQxn7r0doszKXw6MlfGWZaG6FmnO2pnKCpggK29D3';
-		//let ORCID = 'https://orcid.org/0009-0009-5047-606X'
-		//let ZENODO_USER = "Alessandro Lotta";
-		//let AFFILIATION = "Unipd";
 
 		const tempDate = new Date;
 		const pub_date = tempDate.toISOString().split('T')[0];
@@ -249,15 +243,6 @@ function uploadData(data) {
 		const pub_datetime = tempDate.toLocaleString('en-US', options);
 
 		const TITLE = "Ranking snapshot for the query \"" + queryText + "\" performed on " + searchSystem;
-		/*const NOTES = "This citation is created using the Unipd Ranking Citation Tool. \n" +
-			"Available at https://rankingcitation.dei.unipd.it , \n" +
-			"created by Gianmaria Silvello and Alessandro Lotta (University of Padua).";
-		const DESCRIPTION = "This is a deposit containing the citation captured by the user " + ZENODO_USER + " from " + AFFILIATION +
-			" at " + pub_datetime + " who executed the search query \"" + queryText + "\" on the system " + searchSystem + ".\n" +
-			"The number of pages captured is " + nPages + ".\n" +
-			"The data contained in the results obtained from the search query is then saved in the output-data.jsonld file. " +
-			"The deposit also contains the screenshots of the results in PNG format and the metadata for the Research Object Crate in JSON format.\n" +
-			NOTES;*/
 		const NOTES = `The citation snapshot presented here is generated using the Unipd Ranking Citation Tool, 
 				a tool developed by Gianmaria Silvello and Alessandro Lotta (University of Padua). 
 				This tool, accessible at https://rankingcitation.dei.unipd.it`;
@@ -318,73 +303,84 @@ function uploadData(data) {
 			.then((response) => response.json())
 			.then((data) => {
 
-				// Get the deposit ID from the response
-				const depositId = data.id;
-
-				// Upload the data file to the new deposit
-				const formData = new FormData();
-				formData.append("file", dataFile);
-
-				fetch(`${uploadDestination}api/deposit/depositions/${depositId}/files`, {
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${ACCESS_TOKEN}`,
-					},
-					body: formData,
-				})
-					.then((response) => response.json())
-					.then((data) => {
-						console.log("File uploaded successfully:", data);
+				if (data.message === "The server could not verify that you are authorized to access the URL requested. You either supplied the wrong credentials (e.g. a bad password), or your browser doesn't understand how to supply the credentials required."
+					&& data.status == 401) {
+					chrome.runtime.sendMessage({
+						message: 'AUTHORIZATION ERROR'
 					})
-					.catch((error) => {
-						console.error("Error uploading file:", error);
-					});
+					console.error(data);
+				}
+				else {
+					console.log('Deposit created succesfully', data);
 
-				// Upload the crate file 
-				const formData2 = new FormData();
-				formData2.append("file", crateFile);
+					// Get the deposit ID from the response
+					const depositId = data.id;
 
-				fetch(`${uploadDestination}api/deposit/depositions/${depositId}/files`, {
-					method: "POST",
-					headers: {
-						Authorization: `Bearer ${ACCESS_TOKEN}`,
-					},
-					body: formData2,
-				})
-					.then((response) => response.json())
-					.then((data) => {
-						console.log("File uploaded successfully:", data);
+					// Upload the data file to the new deposit
+					const formData = new FormData();
+					formData.append("file", dataFile);
+
+					fetch(`${uploadDestination}api/deposit/depositions/${depositId}/files`, {
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${ACCESS_TOKEN}`,
+						},
+						body: formData,
 					})
-					.catch((error) => {
-						console.error("Error uploading file:", error);
-					});
+						.then((response) => response.json())
+						.then((data) => {
+							console.log("File uploaded successfully:", data);
+						})
+						.catch((error) => {
+							console.error("Error uploading file:", error);
+						});
 
-				// Capture screenshot for the additional pages
-				for (let page = nPages; page > 0; page--) {
-					chrome.tabs.query({ currentWindow: true }, function (tabs) {
-						chrome.tabs.sendMessage(tabs[tabs.length - page].id, {
-							message: `ADD SCREENSHOT${nPages - page + 1}`,
+					// Upload the crate file 
+					const formData2 = new FormData();
+					formData2.append("file", crateFile);
+
+					fetch(`${uploadDestination}api/deposit/depositions/${depositId}/files`, {
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${ACCESS_TOKEN}`,
+						},
+						body: formData2,
+					})
+						.then((response) => response.json())
+						.then((data) => {
+							console.log("File uploaded successfully:", data);
+						})
+						.catch((error) => {
+							console.error("Error uploading file:", error);
+						});
+
+					// Capture screenshot for the additional pages
+					for (let page = nPages; page > 0; page--) {
+						chrome.tabs.query({ currentWindow: true }, function (tabs) {
+							chrome.tabs.sendMessage(tabs[tabs.length - page].id, {
+								message: `ADD SCREENSHOT${nPages - page + 1}`,
+								payload: {
+									token: ACCESS_TOKEN,
+									depositId: depositId,
+									uploadDestination: uploadDestination,
+								}
+							});
+						});
+					}
+
+
+					/*// Tell contentScript to take a screenshot and upload on Zenodo
+					// Warning: do not open the inspection tool when running
+					chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+						chrome.tabs.sendMessage(tabs[0].id, {
+							message: "SCREENSHOT",
 							payload: {
 								token: ACCESS_TOKEN,
-								depositId: depositId,
-								uploadDestination: uploadDestination,
+								depositId: depositId
 							}
 						});
-					});
+					});*/
 				}
-
-
-				/*// Tell contentScript to take a screenshot and upload on Zenodo
-				// Warning: do not open the inspection tool when running
-				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-					chrome.tabs.sendMessage(tabs[0].id, {
-						message: "SCREENSHOT",
-						payload: {
-							token: ACCESS_TOKEN,
-							depositId: depositId
-						}
-					});
-				});*/
 
 
 			})

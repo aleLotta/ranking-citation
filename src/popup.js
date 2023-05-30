@@ -98,6 +98,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	}
 });
 
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.message === 'AUTHORIZATION ERROR') {
+		alert('You supplied the wrong credentials. Remember to set the correct Access Token if you are either using Zenodo or Sandbox Zenodo.'+
+		' The Access Token should also have deposit:write access');
+	}
+})
+
 document.addEventListener("DOMContentLoaded", function (event) {
 
 	// implement the fact that this is returned if the page is not the correct URL
