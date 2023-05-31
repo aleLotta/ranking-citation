@@ -12,7 +12,8 @@ chrome.storage.sync.get(['nPages'], (items) => {
 
     console.log('currentPage ' + currPage);
 
-    const results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub))');
+    let results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub))');
+    if (results.length == 0) results = document.querySelectorAll('.TzHB6b.cLjAic.K7khPe')
 
     let newData = [];
     //let BNODE_INDEX = (10 * (currPage - 1)) + 1;

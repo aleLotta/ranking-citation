@@ -354,6 +354,7 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 					resultURL = result.querySelector('h3>a').href;
 				} else {
 					results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub))');
+					if (results.length == 0) results = document.querySelectorAll('.TzHB6b.cLjAic.K7khPe')
 					result = results[0];
 					resultURL = result.querySelector('.yuRUbf>a').href;
 				}
