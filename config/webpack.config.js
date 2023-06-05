@@ -15,6 +15,7 @@ const config = (env, argv) =>
       background: PATHS.src + '/background.js',
       "Scholar/getOtherPages": PATHS.src + '/Scholar/getOtherPages.js',
       "Google/getGoogleRanks": PATHS.src + '/Google/getGoogleRanks.js',
+      "Scopus/getScopusRanks": PATHS.src + '/Scopus/getScopusRanks.js',
     },
     devtool: argv.mode === 'production' ? false : 'source-map',
   });

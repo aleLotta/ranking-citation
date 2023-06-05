@@ -100,8 +100,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === 'AUTHORIZATION ERROR') {
-		alert('You supplied the wrong credentials. Remember to set the correct Access Token if you are either using Zenodo or Sandbox Zenodo.'+
-		' The Access Token should also have deposit:write access');
+		alert('You supplied the wrong credentials. Remember to set the correct Access Token if you are either using Zenodo or Sandbox Zenodo.' +
+			' The Access Token should also have deposit:write access');
 	}
 })
 
@@ -112,7 +112,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
 	chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 		let currentUrl = tabs[0].url;
 
-		if (currentUrl.match('https://scholar.google.com/scholar*') || currentUrl.match('https://www.google.com/search*')) {
+		if (currentUrl.match('https://scholar.google.com/scholar*') || currentUrl.match('https://www.google.com/search*') ||
+			currentUrl.match("https://www.scopus.com/results*")) {
 
 			document.getElementById('content').innerHTML += '<button id="captureBtn">Capture Snapshot</button>';
 

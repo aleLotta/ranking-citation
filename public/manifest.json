@@ -18,7 +18,8 @@
   },
   "host_permissions": [
     "https://scholar.google.com/scholar*",
-    "https://www.google.com/search*"
+    "https://www.google.com/search*",
+    "https://www.scopus.com/results*"
   ],
   "permissions": [
     "tabs",
@@ -30,11 +31,12 @@
     {
       "matches": [
         "https://scholar.google.com/scholar*",
-        "https://www.google.com/search*"
+        "https://www.google.com/search*",
+        "https://www.scopus.com/results*"
       ],
       "run_at": "document_idle",
       "js": [
-        "contentGoogle.js"
+        "contentScript.js"
       ]
     }
   ],

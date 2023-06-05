@@ -13,7 +13,7 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 	chrome.runtime.onMessage.addListener(
 		function (request, sender, sendResponse) {
-			if (request.message === "START") {
+			if (request.message === "START PROVA") {
 				console.log("Capturing Data");
 
 				data = [];

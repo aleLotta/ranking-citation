@@ -22,64 +22,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 let newData = new Array();
 let newDataCounter = 0;
-let prevBNode = 0;
 // Add the data from the additional pages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === 'NEW DATA') {
 		const dataToAdd = request.payload.newData;
 		for (let d in dataToAdd) {
 			data['@graph'].push(dataToAdd[d]);
-			//console.log('newData',newData);
-			//newData.push(dataToAdd[d]);
 		}
-		if (request.payload.source === 'Google Search') {
-			//newData = adjustRanks(newData);
-		}
-		//data['@graph'].push(newData);
 		newDataCounter++;
 		if (newDataCounter == request.payload.nPages) {
 			if (request.payload.source === 'Google Search') {
 				console.log(data);
-				//adjustRanks(data);
 			}
 			uploadData(data);
 		}
 	}
 });
-
-function adjustRanks(data) {
-	console.log(data);
-
-	let currBNodeIndex = 1;
-	let lastIndex = data.length - 1;
-
-	for (let i = 1; i <= lastIndex; i++) {
-		data[i]['rdfs:label'] = [{ '@value': `rank${currBNodeIndex}` }];
-		if (i === lastIndex) {
-			data.push({
-				"@id": `_:bnode${currBNodeIndex}`,
-				"rdf:first": { "@id": data[i]['@id'] },
-				"rdf:rest": { "@id": `rdf:nil` }
-			});
-		} else {
-			data.push(
-				{ '@id': `_:bnode${currBNodeIndex + 1}`, '@type': 'rdf:List' },
-				{
-					"@id": `_:bnode${currBNodeIndex}`,
-					"rdf:first": { "@id": data[i]['@id'] },
-					"rdf:rest": { "@id": `_:bnode${currBNodeIndex + 1}` }
-				}
-			);
-		}
-		currBNodeIndex++;
-	}
-}
-
-function containsObject(obj, target) {
-	//var objString = JSON.stringify(obj);
-	var targetString = JSON.stringify(target);
-	return objString.includes(targetString);
-}
 
 async function getPagesRanks(nPages) {
 	try {
@@ -90,17 +48,23 @@ async function getPagesRanks(nPages) {
 
 			let patentsFilter, languageFilter, sinceYearFilter,
 				untilYearFilter, sortByFilter, resultTypeFilter;
-			if (url.origin.includes('scholar')) {
-				patentsFilter = params.get('as_sdt') ?? '0.5';
-				languageFilter = params.get('hl') ?? navigator.language.split('-')[0];
-				sinceYearFilter = params.get('as_ylo') ?? '';
-				untilYearFilter = params.get('as_yhi') ?? '';
-				sortByFilter = params.get('scisbd') ?? '0';
-				resultTypeFilter = params.get('as_rr') ?? '0';
+			let queryFilter;
+
+			if (url.origin.includes('google')) {
+				if (url.origin.includes('scholar')) {
+					patentsFilter = params.get('as_sdt') ?? '0.5';
+					languageFilter = params.get('hl') ?? navigator.language.split('-')[0];
+					sinceYearFilter = params.get('as_ylo') ?? '';
+					untilYearFilter = params.get('as_yhi') ?? '';
+					sortByFilter = params.get('scisbd') ?? '0';
+					resultTypeFilter = params.get('as_rr') ?? '0';
+				} else {
+					languageFilter = params.get('hl') ?? '';
+				}
+				queryFilter = params.get('q');
 			} else {
-				languageFilter = params.get('hl') ?? '';
+				queryFilter = params.get('st1');
 			}
-			const queryFilter = params.get('q');
 
 			chrome.storage.sync.set({
 				bNodeIndex: 1,
@@ -108,29 +72,51 @@ async function getPagesRanks(nPages) {
 
 			for (let i = 0; i < nPages; i++) {
 
-				const startURL = 10 * i;
 				let pageURL;
-				if (url.origin.includes('scholar')) {
-					pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=${queryFilter}&hl=${languageFilter}&as_sdt=${patentsFilter}&as_vis=1&` +
-						`as_ylo=${sinceYearFilter}&as_yhi${untilYearFilter}&scisbd=${sortByFilter}&as_rr=${resultTypeFilter}`;
-				} else {
-					pageURL = `${url}&start=${startURL}`;
-				}
+				if (url.origin.includes('google')) {
+					const startURL = 10 * i;
+					if (url.origin.includes('scholar')) {
+						pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=${queryFilter}&hl=${languageFilter}&as_sdt=${patentsFilter}&as_vis=1&` +
+							`as_ylo=${sinceYearFilter}&as_yhi${untilYearFilter}&scisbd=${sortByFilter}&as_rr=${resultTypeFilter}`;
+					} else {
+						pageURL = `${url}&start=${startURL}`;
+					}
 
-				chrome.tabs.create({ url: pageURL, active: false }, createdTab => {
-					chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
-						if (tabId === createdTab.id && info.url) {
-							chrome.tabs.onUpdated.removeListener(_);
+					chrome.tabs.create({ url: pageURL, active: false }, createdTab => {
+						chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
+							if (tabId === createdTab.id && info.url) {
+								chrome.tabs.onUpdated.removeListener(_);
 
-							chrome.scripting.executeScript({
-								target: {
-									tabId: tabId
-								},
-								files: url.origin.includes('scholar') ? ['Scholar/getOtherPages.js'] : ['Google/getGoogleRanks.js']
-							});
-						}
+								chrome.scripting.executeScript({
+									target: {
+										tabId: tabId
+									},
+									files: url.origin.includes('scholar') ? ['Scholar/getOtherPages.js'] : ['Google/getGoogleRanks.js']
+								});
+							}
+						});
 					});
-				});
+				} else {
+					const startURL = (20 * i) + 1;
+					pageURL = url;
+					pageURL.searchParams.set('offset', String(startURL));
+					pageURL.searchParams.set('origin', 'resultlist');
+
+					chrome.tabs.create({ url: String(pageURL), active: false }, createdTab => {
+						chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
+							if (tabId === createdTab.id && info.url) {
+								chrome.tabs.onUpdated.removeListener(_);
+
+								chrome.scripting.executeScript({
+									target: {
+										tabId: tabId
+									},
+									files: ['Scopus/getScopusRanks.js']
+								});
+							}
+						});
+					});
+				}
 			}
 		});
 

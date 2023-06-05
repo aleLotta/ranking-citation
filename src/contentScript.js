@@ -1,4 +1,3 @@
-import html2canvas from "html2canvas";
 
 let data;
 let pageTitle;
@@ -14,7 +13,7 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 	chrome.runtime.onMessage.addListener(
 		function (request, sender, sendResponse) {
-			if (request.message === "START PROVA") {
+			if (request.message === "START") {
 				console.log("Capturing Data");
 
 				data = [];
@@ -187,45 +186,143 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 				const tempUrl = document.location.href;
 				const baseURL = tempUrl.split('/')[2];
 				pageTitle = document.querySelector('title').innerText;
-				const name = pageTitle.split('-')[1].slice(1);
+				let name = pageTitle.split('-')[1].slice(1);
+				if (name.includes('Google')) {
+					if (!name.includes('Scholar')) name = 'Google Search';
+				} else {
+					name = 'Scopus';
+				}
 
 				/**
 				 * Data for Search Query 
 				 */
 				const url = new URL(window.location.href);
 				const params = new URLSearchParams(url.search);
-				const patentsFilter = params.get('as_sdt') ?? '0.5';
-				const queryText = params.get('q');
-				const language = params.get('hl') ?? 'en';
-				const sinceYearFilter = params.get('as_ylo') ?? null;
-				const untilYearFilter = params.get('as_yhi') ?? null;
-				const sortByFilter = params.get('scisbd') ?? '0';
-				const resultTypeFilter = params.get('as_rr') ?? '0';
+				const queryText = params.get('q') ?? params.get('st1');
+				let language = params.get('hl') ?? navigator.language.split('-')[0];
+				if (name === 'Scopus') language = 'en';
 
 				const filters = [];
-				if (patentsFilter !== '0.5') {
-					filters.push("Include patents");
+				if (name.includes('Google')) {
+					if (name.includes('Scholar')) {
+						const patentsFilter = params.get('as_sdt') ?? '0.5';
+						const sinceYearFilter = params.get('as_ylo') ?? null;
+						const untilYearFilter = params.get('as_yhi') ?? null;
+						const sortByFilter = params.get('scisbd') ?? '0';
+						const resultTypeFilter = params.get('as_rr') ?? '0';
+
+						if (patentsFilter !== '0.5') {
+							filters.push("Include patents");
+						} else {
+							filters.push("Don't include patents");
+						}
+
+						if ((!sinceYearFilter) && (!untilYearFilter)) {
+							filters.push('Any Time');
+						} else {
+							if (sinceYearFilter) filters.push(`Since year ${sinceYearFilter}`);
+							if (untilYearFilter) filters.push(`Until year ${untilYearFilter}`);
+						}
+						if (sortByFilter === '0') {
+							filters.push('Sort by relevance');
+						} else { filters.push('Sort by date'); }
+						if (resultTypeFilter === '0') {
+							filters.push('Any type');
+						} else { filters.push('Review articles'); }
+					} else {
+						const fromFilter = params.get('tbs') ?? '';
+						switch (fromFilter) {
+							case '':
+								filters.push('Any Time');
+								break;
+							case 'qdr:h':
+								filters.push('Past Hour');
+								break;
+							case 'qdr:d':
+								filters.push('Past 24 hours');
+								break;
+							case 'qdr:w':
+								filters.push('Past Week');
+								break;
+							case 'qdr:m':
+								filters.push('Past Month');
+								break;
+							case 'qdr:y':
+								filters.push('Past Year');
+								break;
+							default:
+								const sinceYear = fromFilter.split(',')[1].replace('cd_min:', '');
+								const untilYear = fromFilter.split(',')[1].replace('cd_max:', '');
+								if (sinceYear != '') filters.push('Since Year ' + sinceYear);
+								if (untilYear != '') filters.push('Until Year ' + untilYear);
+
+						}
+
+					}
 				} else {
-					filters.push("Don't include patents");
+					// FILTERS FOR SCOPUS COULD STILL BE EXPANDED
+
+					const refinefilter = params.get('cluster') ?? '';
+
+					if (refinefilter.includes('all')) {
+						if (refinefilter.includes('"all",f')) {
+							filters.push('Exclude All Open Access');
+						}
+						else filters.push('Exclude All Open Access');
+					}
+					if (refinefilter.includes('publisherfullgold')) {
+						if (refinefilter.includes('"publisherfullgold",f')) {
+							filters.push('Exclude Gold');
+						}
+						else filters.push('Gold');
+					}
+					if (refinefilter.includes('publisherhybridgold')) {
+						if (refinefilter.includes('"publisherhybridgold",f')) {
+							filters.push('Exclude Hybrid Gold');
+						} else filters.push('Hybrid Gold');
+
+					}
+					if (refinefilter.includes('publisherfree2read')) {
+						if (refinefilter.includes('"publisherfree2read",f')) {
+							filters.push('Exclude Bronze');
+						} else filters.push('Bronze');
+
+					}
+					if (refinefilter.includes('repository')) {
+						if (refinefilter.includes('"repository",f')) {
+							filters.push('Exclude Green');
+						} else filters.push('Green');
+					}
+
+					if (refinefilter.includes('scopubyr')) {
+						const splitArr = refinefilter.split(',');
+						let yearIndex = splitArr.indexOf('scopubyr');
+						if (yearIndex === -1) {
+							let temp = refinefilter.replaceAll('t+', '');
+							temp = temp.replaceAll('f+', '');
+							tempArr = temp.split(',');
+							yearIndex = tempArr.indexOf('scopubyr');
+						}
+						yearIndex++;
+						if (refinefilter.includes(`${splitArr[yearIndex]},f`)) {
+							filters.push(`Exclude Publication Year ${splitArr[yearIndex]}`)
+						} else filters.push(`Publication Year ${splitArr[yearIndex]}`)
+					}
+
 				}
 
-				if ((!sinceYearFilter) && (!untilYearFilter)) {
-					filters.push('Any Time');
-				} else {
-					if (sinceYearFilter) filters.push(`Since year ${sinceYearFilter}`);
-					if (untilYearFilter) filters.push(`Until year ${untilYearFilter}`);
-				}
-				if (sortByFilter === '0') {
-					filters.push('Sort by relevance');
-				} else { filters.push('Sort by date'); }
-				if (resultTypeFilter === '0') {
-					filters.push('Any type');
-				} else { filters.push('Review articles'); }
+
 
 				// Data for Settings
-				const loginElement = document.getElementById("gs_hdr_act_i");
 				let isLogged = false;
-				if (loginElement) isLogged = true;
+				if (name.includes('Google')) {
+					const loginElement = name.includes('Scholar') ? document.getElementById("gs_hdr_act_i") :
+						document.getElementsByClassName('gb_k gbii')[0];
+					if (loginElement) isLogged = true;
+				} else {
+					const loginElement = document.getElementById('initials');
+					if (loginElement) isLogged = true;
+				}
 				const userData = navigator.userAgentData;
 				const userOS = userData.platform;
 				const browser = userData.brands[1].brand;
@@ -234,7 +331,6 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 				// Data for User
 				const userName = firstName + ' ' + lastName;
-
 
 				let rankingId = "ranking-" + timestamp + "-" + userName
 				rankingId = hashCode(rankingId);
@@ -255,7 +351,7 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 						}],
 						"@type": "rco:RankingSnapshot",
 						"rco:dateTime": date,
-						"rco:nPages": parseInt(nPages,10)
+						"rco:nPages": parseInt(nPages, 10)
 					},
 					{
 						"@id": "http://" + baseURL,
@@ -343,9 +439,24 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 				);
 
-				const results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
-				const result = results[0]
-				const resultURL = result.querySelector('h3>a').href;
+				let results, result, resultURL;
+				if (name.includes('Google')) {
+					if (name.includes('Scholar')) {
+						results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
+						result = results[0];
+						resultURL = result.querySelector('h3>a').href;
+					} else {
+						results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub, .uVMCKf))');
+						if (results.length == 0) results = document.querySelectorAll('.TzHB6b.cLjAic.K7khPe')
+						result = results[0];
+						resultURL = result.querySelector('.yuRUbf>a').href;
+					}
+				} else {
+					results = document.querySelectorAll('.searchArea');
+					result = results[0];
+					resultURL = result.querySelector('.ddmDocTitle').href;
+				}
+
 				const bnodeString = "_:bnode1";
 
 				data.push({
