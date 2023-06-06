@@ -91,7 +91,7 @@ async function getPagesRanks(nPages) {
 									target: {
 										tabId: tabId
 									},
-									files: url.origin.includes('scholar') ? ['Scholar/getOtherPages.js'] : ['Google/getGoogleRanks.js']
+									files: url.origin.includes('scholar') ? ['Scholar/getScholarRanks.js'] : ['Google/getGoogleRanks.js']
 								});
 							}
 						});
@@ -288,7 +288,7 @@ function uploadData(data) {
 		})
 			.then((response) => response.json())
 			.then((data) => {
-				console.log(data.status)
+				console.log(data)
 
 				if (String(data.status).startsWith('4') || String(data.status).startsWith('5')) {
 					chrome.runtime.sendMessage({

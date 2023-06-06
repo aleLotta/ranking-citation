@@ -11,9 +11,8 @@ const config = (env, argv) =>
     entry: {
       popup: PATHS.src + '/popup.js',
       contentScript: PATHS.src + '/contentScript.js',
-      contentGoogle: PATHS.src + '/contentGoogle.js',
       background: PATHS.src + '/background.js',
-      "Scholar/getOtherPages": PATHS.src + '/Scholar/getOtherPages.js',
+      "Scholar/getScholarRanks": PATHS.src + '/Scholar/getScholarRanks.js',
       "Google/getGoogleRanks": PATHS.src + '/Google/getGoogleRanks.js',
       "Scopus/getScopusRanks": PATHS.src + '/Scopus/getScopusRanks.js',
     },
