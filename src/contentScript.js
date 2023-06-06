@@ -188,7 +188,9 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 				pageTitle = document.querySelector('title').innerText;
 				let name = pageTitle.split('-')[1].slice(1);
 				if (name.includes('Google')) {
-					if (!name.includes('Scholar')) name = 'Google Search';
+					if (!name.includes('Scholar')) {
+						name = 'Google Search';
+					}
 				} else {
 					name = 'Scopus';
 				}
@@ -446,7 +448,8 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 						result = results[0];
 						resultURL = result.querySelector('h3>a').href;
 					} else {
-						results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub, .uVMCKf))');
+						let results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub,' +
+							'.uVMCKf, .g.dFd2Tb.PhX2wd))')
 						if (results.length == 0) results = document.querySelectorAll('.TzHB6b.cLjAic.K7khPe')
 						result = results[0];
 						resultURL = result.querySelector('.yuRUbf>a').href;
@@ -479,8 +482,8 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 				};
 
 				const someData = JSON.stringify(outputData);
-				sendResponse({ data: someData, title: pageTitle });
-
+				if (name.includes('Google')) sendResponse({ data: someData, title: pageTitle });
+				else sendResponse({ data: someData, title: `${queryText}-${name}` })
 			}
 		}
 	);

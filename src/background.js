@@ -14,6 +14,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				data = JSON.parse(request.payload.message);
 				queryText = request.payload.title.split("-")[0].trim().toUpperCase();
 				searchSystem = request.payload.title.split("-")[1].trim();
+				if (searchSystem.includes('Google') && !(searchSystem.includes('Scholar')))
+					searchSystem = 'Google Search';
 				getPagesRanks(nPages);
 			}
 		});

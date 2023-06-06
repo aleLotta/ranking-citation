@@ -114,7 +114,7 @@ chrome.storage.sync.get('nPages', (items) => {
         payload: {
             newData: newData,
             nPages: nPages,
-            source: 'Google Scholar'
+            source: 'Scopus'
         }
     });
 });

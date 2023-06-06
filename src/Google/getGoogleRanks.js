@@ -12,7 +12,8 @@ chrome.storage.sync.get(['nPages'], (items) => {
 
     console.log('currentPage ' + currPage);
 
-    let results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub, .uVMCKf))');
+    let results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub,'+
+        '.uVMCKf, .g.dFd2Tb.PhX2wd))');
     if (results.length == 0) results = document.querySelectorAll('.TzHB6b.cLjAic.K7khPe')
 
     let newData = [];
@@ -152,6 +153,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         const sfooter = document.body.querySelector('#sfooter');
         sfooter.style = 'display:none';
+        const hiddenDiv = document.querySelector('.wYq63b');
+        hiddenDiv.style = 'display:none';
 
         html2canvas(document.body).then(function (canvas) {
 
@@ -195,6 +198,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             });
 
                             sfooter.style = 'display:';
+                            hiddenDiv.style = 'display:';
                             //}
                         }
                     })
