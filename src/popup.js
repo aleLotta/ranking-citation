@@ -28,29 +28,38 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				})
 					.then((response) => response.json())
 					.then((data) => {
-						console.log("Deposit published successfully:", data);
+						if (String(data.status).startsWith('4') || String(data.status).startsWith('5')) {
+							chrome.runtime.sendMessage({
+								message: 'ERROR',
+								status: data.status
+							})
 
-						const depositDOI = data.doi;
-						const creators = data.metadata.creators;
-						const title = data.metadata.title;
-						const publication_date = data.metadata.publication_date;
-						const publisher = uploadDestination.includes('sandbox') ? "Zenodo Sandbox" : "Zenodo";
+							console.error(data);
+						} else {
+							console.log("Deposit published successfully:", data);
 
-						let creatorsText = "";
-						for (let author of creators) {
-							creatorsText += author.name + ", "
+							const depositDOI = data.doi;
+							const creators = data.metadata.creators;
+							const title = data.metadata.title;
+							const publication_date = data.metadata.publication_date;
+							const publisher = uploadDestination.includes('sandbox') ? "Zenodo Sandbox" : "Zenodo";
+
+							let creatorsText = "";
+							for (let author of creators) {
+								creatorsText += author.name + ", "
+							}
+							creatorsText = creatorsText.slice(0, -2);
+							//const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
+							//	". (Version " + version + "). ";
+							const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". ";
+
+							chrome.storage.sync.set({ [depositDOI]: citation }).then(() => {
+								//console.log("Value is set to " + citation);
+							});
+
+							updateCitations(depositDOI);
+
 						}
-						creatorsText = creatorsText.slice(0, -2);
-						//const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
-						//	". (Version " + version + "). ";
-						const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". ";
-
-						chrome.storage.sync.set({ [depositDOI]: citation }).then(() => {
-							//console.log("Value is set to " + citation);
-						});
-
-						updateCitations(depositDOI);
-
 					})
 					.catch((error) => {
 						console.error("Error publishing deposit:", error);
@@ -68,26 +77,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 				})
 					.then(response => response.json())
 					.then(data => {
+						if (String(data.status).startsWith('4') || String(data.status).startsWith('5')) {
+							chrome.runtime.sendMessage({
+								message: 'ERROR',
+								status: data.status
+							})
 
-						const creators = data.metadata.creators;
-						const title = data.metadata.title;
-						const publication_date = data.metadata.publication_date;
-						const publisher = uploadDestination.includes('sandbox') ? "Zenodo Sandbox" : "Zenodo";
+							console.error(data);
+						} else {
+							const creators = data.metadata.creators;
+							const title = data.metadata.title;
+							const publication_date = data.metadata.publication_date;
+							const publisher = uploadDestination.includes('sandbox') ? "Zenodo Sandbox" : "Zenodo";
 
-						let creatorsText = "";
-						for (let author of creators) {
-							creatorsText += author.name + ", "
+							let creatorsText = "";
+							for (let author of creators) {
+								creatorsText += author.name + ", "
+							}
+							creatorsText = creatorsText.slice(0, -2);
+							//const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
+							//	". (Version " + version + "). ";
+							const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". ";
+
+							chrome.storage.sync.set({ [depositId]: citation }).then(() => {
+								//console.log("Value is set to " + citation);
+
+								updateCitations(String(depositId));
+							});
+
 						}
-						creatorsText = creatorsText.slice(0, -2);
-						//const citation = creatorsText + ". " + title + " " + publication_date + ". " + publisher +
-						//	". (Version " + version + "). ";
-						const citation = creatorsText + ". " + title + " (" + publication_date + "). " + publisher + ". ";
-
-						chrome.storage.sync.set({ [depositId]: citation }).then(() => {
-							//console.log("Value is set to " + citation);
-
-							updateCitations(String(depositId));
-						});
 
 					})
 					.catch(error => {
@@ -99,9 +117,38 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.message === 'AUTHORIZATION ERROR') {
-		alert('You supplied the wrong credentials. Remember to set the correct Access Token if you are either using Zenodo or Sandbox Zenodo.' +
-			' The Access Token should also have deposit:write access');
+	if (request.message === 'ERROR') {
+		if (request.status == 401) {
+			alert('You supplied the wrong credentials. Remember to set the correct Access Token if you are either using Zenodo or Sandbox Zenodo.' +
+				' The Access Token should also have deposit:write access');
+		}
+		if (request.status == 400) {
+			alert('Request failed, please try again.');
+		}
+		if (request.status == 403) {
+			alert('Request failed, due to missing authorization. There could be a problem with the Access Token or the upload.' +
+				'Check the Access Token in the options and retry');
+		}
+		if (request.status == 404) {
+			alert('Request failed, due to the resource not being found');
+		}
+		if (request.status == 405) {
+			alert('Request failed, due to unsupported HTTP method');
+		}
+		if (request.status == 409) {
+			alert('Request failed, due to confinct in the current state of the resource');
+		}
+		if (request.status == 415) {
+			alert('Request failed, due to Unsupported Media Type');
+		}
+		if (request.status == 429) {
+			alert('Request failed, due to too many requests');
+		}
+		if (request.status == 500) {
+			alert('Internal Server Error. Zenodo will deal with the problem');
+		}
+
+
 	}
 })
 

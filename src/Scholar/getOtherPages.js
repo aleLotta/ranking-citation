@@ -157,8 +157,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 })
                     .then((response) => response.json())
                     .then((data) => {
-                        console.log("File uploaded successfully:", data);
-                        //if (currPage == nPages) {
+                        if (String(data.status).startsWith('4') || String(data.status).startsWith('5')) {
+                            chrome.runtime.sendMessage({
+                                message: 'ERROR',
+                                status: data.status
+                            })
+
+                            console.error(data);
+                        } else {
+                            console.log("File uploaded successfully:", data);
+                            //if (currPage == nPages) {
                             chrome.runtime.sendMessage({
                                 message: "Uploaded Screenshot",
                                 payload: {
@@ -168,7 +176,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                                     uploadDestination: uploadDestination,
                                 }
                             });
-                        //}
+                            //}
+                        }
                     })
                     .catch((error) => {
                         console.error("Error uploading file:", error);

@@ -288,12 +288,14 @@ function uploadData(data) {
 		})
 			.then((response) => response.json())
 			.then((data) => {
+				console.log(data.status)
 
-				if (data.message === "The server could not verify that you are authorized to access the URL requested. You either supplied the wrong credentials (e.g. a bad password), or your browser doesn't understand how to supply the credentials required."
-					&& data.status == 401) {
+				if (String(data.status).startsWith('4') || String(data.status).startsWith('5')) {
 					chrome.runtime.sendMessage({
-						message: 'AUTHORIZATION ERROR'
+						message: 'ERROR',
+						status: data.status
 					})
+
 					console.error(data);
 				}
 				else {
@@ -315,7 +317,16 @@ function uploadData(data) {
 					})
 						.then((response) => response.json())
 						.then((data) => {
-							console.log("File uploaded successfully:", data);
+							if (String(data.status).startsWith('4') || String(data.status).startsWith('5')) {
+								chrome.runtime.sendMessage({
+									message: 'ERROR',
+									status: data.status
+								})
+
+								console.error(data);
+							} else {
+								console.log("File uploaded successfully:", data);
+							}
 						})
 						.catch((error) => {
 							console.error("Error uploading file:", error);
@@ -334,7 +345,16 @@ function uploadData(data) {
 					})
 						.then((response) => response.json())
 						.then((data) => {
-							console.log("File uploaded successfully:", data);
+							if (String(data.status).startsWith('4') || String(data.status).startsWith('5')) {
+								chrome.runtime.sendMessage({
+									message: 'ERROR',
+									status: data.status
+								})
+
+								console.error(data);
+							} else {
+								console.log("File uploaded successfully:", data);
+							}
 						})
 						.catch((error) => {
 							console.error("Error uploading file:", error);
