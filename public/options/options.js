@@ -1,6 +1,7 @@
 'use strict'
 
 document.addEventListener("DOMContentLoaded", function (event) {
+
     chrome.storage.sync.get(['accessToken', 'firstName', 'lastName', 'affiliation', "orcid"], function (items) {
         if (Object.keys(items).length !== 0) {
             document.getElementById("atoken").value = items.accessToken;
@@ -76,8 +77,32 @@ document.addEventListener("DOMContentLoaded", function (event) {
                 document.getElementById('zenodo').checked = true;
             }
         }
-    })
+    });
+
 });
+
+let firstLetter;
+let isCopied = true;
+let inputIdArray = ['affiliation', 'atoken', 'fname', 'lname', 'orcid'];
+for (let key of inputIdArray) {
+    document.getElementById(key).addEventListener('input', function (event) {
+        let enteredText = event.target.value;
+        console.log(enteredText);
+        if (enteredText.length > 1) {
+            if (enteredText.charAt(0) !== firstLetter && enteredText.charAt(1) === firstLetter) {
+                console.log(enteredText, '-', firstLetter);
+                enteredText = String(enteredText.slice(1)) + String(enteredText.charAt(0));
+                event.target.value = enteredText;
+                firstLetter = enteredText.charAt(0);
+            }
+        }
+        if (enteredText.length === 1) {
+            firstLetter = enteredText;
+            console.log('first', firstLetter);
+            isCopied = false;
+        }
+    });
+}
 
 function addAuthor() {
     const newAuthor = document.createElement("fieldset");
@@ -190,14 +215,15 @@ function saveOptions(event) {
         uploadDestination: uploadDestination,
     }, function () {
         // Notify the user that the options were saved.
-        let status = document.getElementById('status');
-        status.textContent = 'Options saved.';
+        let status = document.querySelectorAll('.status');
+        status.forEach(el => el.style = 'display:flex');
+
         document.getElementsByTagName("fieldset")[0].style = "border: 4px solid green;";
         document.getElementsByTagName("fieldset")[1].style = "border: 4px solid green;";
         document.getElementsByTagName("fieldset")[2].style = "border: 4px solid green;";
         document.getElementsByTagName("fieldset")[3].style = "border: 4px solid green;";
         setTimeout(function () {
-            status.textContent = '';
+            status.forEach(el => el.style = 'display:none');
             document.getElementsByTagName("fieldset")[0].style = "border: 2px solid #ccc;";
             document.getElementsByTagName("fieldset")[1].style = "border: 2px solid #ccc;";
             document.getElementsByTagName("fieldset")[2].style = "border: 2px solid #ccc;";

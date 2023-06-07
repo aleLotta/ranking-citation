@@ -119,8 +119,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === 'ERROR') {
 		if (request.status == 401) {
-			alert('You supplied the wrong credentials. Remember to set the correct Access Token if you are either using Zenodo or Sandbox Zenodo.' +
-				' The Access Token should also have deposit:write access');
+			alert('You supplied the wrong credentials. Remember to set the correct Access Token if you are either using Zenodo or Sandbox Zenodo (They dont\'t share the same account).' +
+				' The Access Token should also have deposit:actions and deposit:write access');
 		}
 		if (request.status == 400) {
 			alert('Request failed, please try again.');

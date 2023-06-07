@@ -14,6 +14,7 @@
     <div id="content">
         <form id="options-form">
             <input type="submit" value="Save Options">
+            <div class="status">Options Saved!</div>
 
             <fieldset>
                 <legend>Zenodo metadata:</legend>
@@ -65,14 +66,14 @@
 
             <fieldset>
                 <legend>Other Settings:</legend>
-                <label for="quantity">Pages to capture:</label>
+                <label for="n-pages">Pages to capture:</label>
                 <input type="number" id="n-pages" name="n-pages" min="1" max="10" value="1">
             </fieldset>
 
         </form>
 
     </div>
-    <div id="status"></div>
+    <div class="status">Options Saved!</div>
     <script src="options.js"></script>
 </body>
 
