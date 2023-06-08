@@ -235,6 +235,7 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 							filters.push('Any type');
 						} else { filters.push('Review articles'); }
 					} else {
+						// FILTERS FOR GOOGLE SEARCH
 						const fromFilter = params.get('tbs') ?? '';
 						switch (fromFilter) {
 							case '':
@@ -256,10 +257,10 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 								filters.push('Past Year');
 								break;
 							default:
-								const sinceYear = fromFilter.split(',')[1].replace('cd_min:', '');
-								const untilYear = fromFilter.split(',')[1].replace('cd_max:', '');
-								if (sinceYear != '') filters.push('Since Year ' + sinceYear);
-								if (untilYear != '') filters.push('Until Year ' + untilYear);
+								const sinceFilter = fromFilter.split(',')[1].replace('cd_min:', '');
+								const untilFilter = fromFilter.split(',')[1].replace('cd_max:', '');
+								if (sinceFilter != '') filters.push('Since ' + sinceFilter);
+								if (untilFilter != '') filters.push('Until ' + untilFilter);
 
 						}
 
@@ -317,6 +318,18 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 					} else {
 						// FILTERS FOR BING
+						const fromFilter = params.get('filters') ?? '';
+						if (fromFilter === '') filters.push('Any Time');
+						if (fromFilter.includes('ez1')) filters.push('Past 24 hours');
+						if (fromFilter.includes('ez2')) filters.push('Past Week');
+						if (fromFilter.includes('ez3')) filters.push('Past Month');
+						if (fromFilter.includes('ez5')) {
+							let interval = document.getElementsByClassName('fs_label')[0].innerText;
+							interval = interval.replaceAll(' ', '').split('-');
+							filters.push('Since ' + interval[0]);
+							filters.push('Until ' + interval[1]);
+						}
+
 					}
 				}
 
