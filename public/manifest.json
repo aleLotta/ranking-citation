@@ -19,7 +19,8 @@
   "host_permissions": [
     "https://scholar.google.com/scholar*",
     "https://www.google.com/search*",
-    "https://www.scopus.com/results*"
+    "https://www.scopus.com/results*",
+    "https://www.bing.com/search*"
   ],
   "permissions": [
     "tabs",
@@ -32,7 +33,8 @@
       "matches": [
         "https://scholar.google.com/scholar*",
         "https://www.google.com/search*",
-        "https://www.scopus.com/results*"
+        "https://www.scopus.com/results*",
+        "https://www.bing.com/search*"
       ],
       "run_at": "document_idle",
       "js": [

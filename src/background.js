@@ -33,9 +33,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		}
 		newDataCounter++;
 		if (newDataCounter == request.payload.nPages) {
-			if (request.payload.source === 'Google Search') {
-				console.log(data);
-			}
 			uploadData(data);
 		}
 	}
@@ -99,25 +96,47 @@ async function getPagesRanks(nPages) {
 						});
 					});
 				} else {
-					const startURL = (20 * i) + 1;
-					pageURL = url;
-					pageURL.searchParams.set('offset', String(startURL));
-					pageURL.searchParams.set('origin', 'resultlist');
+					if (url.origin.includes('bing')) {
+						const startURL = (10 * i) + 1;
+						pageURL = url;
+						pageURL.searchParams.set('first', String(startURL));
 
-					chrome.tabs.create({ url: String(pageURL), active: false }, createdTab => {
-						chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
-							if (tabId === createdTab.id && info.url) {
-								chrome.tabs.onUpdated.removeListener(_);
+						chrome.tabs.create({ url: String(pageURL), active: false }, createdTab => {
+							chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
+								if (tabId === createdTab.id && info.url) {
+									chrome.tabs.onUpdated.removeListener(_);
 
-								chrome.scripting.executeScript({
-									target: {
-										tabId: tabId
-									},
-									files: ['Scopus/getScopusRanks.js']
-								});
-							}
+									chrome.scripting.executeScript({
+										target: {
+											tabId: tabId
+										},
+										files: ['Bing/getBingRanks.js']
+									});
+								}
+							});
 						});
-					});
+
+					} else {
+						const startURL = (20 * i) + 1;
+						pageURL = url;
+						pageURL.searchParams.set('offset', String(startURL));
+						pageURL.searchParams.set('origin', 'resultlist');
+
+						chrome.tabs.create({ url: String(pageURL), active: false }, createdTab => {
+							chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
+								if (tabId === createdTab.id && info.url) {
+									chrome.tabs.onUpdated.removeListener(_);
+
+									chrome.scripting.executeScript({
+										target: {
+											tabId: tabId
+										},
+										files: ['Scopus/getScopusRanks.js']
+									});
+								}
+							});
+						});
+					}
 				}
 			}
 		});

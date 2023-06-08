@@ -192,7 +192,10 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 						name = 'Google Search';
 					}
 				} else {
-					name = 'Scopus';
+					if (pageTitle.includes('Scopus')) name = 'Scopus';
+					else {
+						name = 'Bing';
+					}
 				}
 
 				/**
@@ -262,55 +265,59 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 					}
 				} else {
-					// FILTERS FOR SCOPUS COULD STILL BE EXPANDED
+					if (name === 'Scopus') {
+						// FILTERS FOR SCOPUS COULD STILL BE EXPANDED
 
-					const refinefilter = params.get('cluster') ?? '';
+						const refinefilter = params.get('cluster') ?? '';
 
-					if (refinefilter.includes('all')) {
-						if (refinefilter.includes('"all",f')) {
-							filters.push('Exclude All Open Access');
+						if (refinefilter.includes('all')) {
+							if (refinefilter.includes('"all",f')) {
+								filters.push('Exclude All Open Access');
+							}
+							else filters.push('Exclude All Open Access');
 						}
-						else filters.push('Exclude All Open Access');
-					}
-					if (refinefilter.includes('publisherfullgold')) {
-						if (refinefilter.includes('"publisherfullgold",f')) {
-							filters.push('Exclude Gold');
+						if (refinefilter.includes('publisherfullgold')) {
+							if (refinefilter.includes('"publisherfullgold",f')) {
+								filters.push('Exclude Gold');
+							}
+							else filters.push('Gold');
 						}
-						else filters.push('Gold');
-					}
-					if (refinefilter.includes('publisherhybridgold')) {
-						if (refinefilter.includes('"publisherhybridgold",f')) {
-							filters.push('Exclude Hybrid Gold');
-						} else filters.push('Hybrid Gold');
+						if (refinefilter.includes('publisherhybridgold')) {
+							if (refinefilter.includes('"publisherhybridgold",f')) {
+								filters.push('Exclude Hybrid Gold');
+							} else filters.push('Hybrid Gold');
 
-					}
-					if (refinefilter.includes('publisherfree2read')) {
-						if (refinefilter.includes('"publisherfree2read",f')) {
-							filters.push('Exclude Bronze');
-						} else filters.push('Bronze');
-
-					}
-					if (refinefilter.includes('repository')) {
-						if (refinefilter.includes('"repository",f')) {
-							filters.push('Exclude Green');
-						} else filters.push('Green');
-					}
-
-					if (refinefilter.includes('scopubyr')) {
-						const splitArr = refinefilter.split(',');
-						let yearIndex = splitArr.indexOf('scopubyr');
-						if (yearIndex === -1) {
-							let temp = refinefilter.replaceAll('t+', '');
-							temp = temp.replaceAll('f+', '');
-							tempArr = temp.split(',');
-							yearIndex = tempArr.indexOf('scopubyr');
 						}
-						yearIndex++;
-						if (refinefilter.includes(`${splitArr[yearIndex]},f`)) {
-							filters.push(`Exclude Publication Year ${splitArr[yearIndex]}`)
-						} else filters.push(`Publication Year ${splitArr[yearIndex]}`)
-					}
+						if (refinefilter.includes('publisherfree2read')) {
+							if (refinefilter.includes('"publisherfree2read",f')) {
+								filters.push('Exclude Bronze');
+							} else filters.push('Bronze');
 
+						}
+						if (refinefilter.includes('repository')) {
+							if (refinefilter.includes('"repository",f')) {
+								filters.push('Exclude Green');
+							} else filters.push('Green');
+						}
+
+						if (refinefilter.includes('scopubyr')) {
+							const splitArr = refinefilter.split(',');
+							let yearIndex = splitArr.indexOf('scopubyr');
+							if (yearIndex === -1) {
+								let temp = refinefilter.replaceAll('t+', '');
+								temp = temp.replaceAll('f+', '');
+								tempArr = temp.split(',');
+								yearIndex = tempArr.indexOf('scopubyr');
+							}
+							yearIndex++;
+							if (refinefilter.includes(`${splitArr[yearIndex]},f`)) {
+								filters.push(`Exclude Publication Year ${splitArr[yearIndex]}`)
+							} else filters.push(`Publication Year ${splitArr[yearIndex]}`)
+						}
+
+					} else {
+						// FILTERS FOR BING
+					}
 				}
 
 
@@ -322,9 +329,16 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 						document.getElementsByClassName('gb_k gbii')[0];
 					if (loginElement) isLogged = true;
 				} else {
-					const loginElement = document.getElementById('initials');
-					if (loginElement) isLogged = true;
+					if (name === 'Bing') {
+						if (!(document.getElementsByClassName('id_avatar sw_spd')[0].style === 'display:none')) {
+							isLogged = true;
+						}
+					} else {
+						const loginElement = document.getElementById('initials');
+						if (loginElement) isLogged = true;
+					}
 				}
+
 				const userData = navigator.userAgentData;
 				const userOS = userData.platform;
 				const browser = userData.brands[1].brand;
@@ -455,9 +469,15 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 						resultURL = result.querySelector('.yuRUbf>a').href;
 					}
 				} else {
-					results = document.querySelectorAll('.searchArea');
-					result = results[0];
-					resultURL = result.querySelector('.ddmDocTitle').href;
+					if (name === 'Scopus') {
+						results = document.querySelectorAll('.searchArea');
+						result = results[0];
+						resultURL = result.querySelector('.ddmDocTitle').href;
+					} else {
+						results = document.querySelectorAll('.b_algo');
+						result = results[0];
+						resultURL = result.querySelector('h2 > a').href;
+					}
 				}
 
 				const bnodeString = "_:bnode1";
@@ -483,7 +503,9 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 				const someData = JSON.stringify(outputData);
 				if (name.includes('Google')) sendResponse({ data: someData, title: pageTitle });
-				else sendResponse({ data: someData, title: `${queryText}-${name}` })
+				else {
+					sendResponse({ data: someData, title: `${queryText}-${name}` });
+				}
 			}
 		}
 	);

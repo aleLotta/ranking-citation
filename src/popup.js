@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 		let currentUrl = tabs[0].url;
 
 		if (currentUrl.match('https://scholar.google.com/scholar*') || currentUrl.match('https://www.google.com/search*') ||
-			currentUrl.match("https://www.scopus.com/results*")) {
+			currentUrl.match("https://www.scopus.com/results*") || currentUrl.match("https://www.bing.com/search*")) {
 
 			document.getElementById('content').innerHTML += '<button id="captureBtn">Capture Snapshot</button>';
 

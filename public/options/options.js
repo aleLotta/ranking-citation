@@ -82,7 +82,6 @@ document.addEventListener("DOMContentLoaded", function (event) {
 });
 
 let firstLetter;
-let isCopied = true;
 let inputIdArray = ['affiliation', 'atoken', 'fname', 'lname', 'orcid'];
 for (let key of inputIdArray) {
     document.getElementById(key).addEventListener('input', function (event) {
