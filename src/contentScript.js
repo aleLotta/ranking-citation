@@ -211,7 +211,7 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 				 */
 				const url = new URL(window.location.href);
 				const params = new URLSearchParams(url.search);
-				const queryText = params.get('q') ?? params.get('st1');
+				const queryText = params.get('q').replaceAll("\"", "") ?? params.get('st1');
 				let language = params.get('hl') ?? navigator.language.split('-')[0];
 				if (name === 'Scopus' || name === 'Twitter') language = 'en';
 
@@ -339,8 +339,37 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 						break;
 
 					case 'Twitter':
+						const orderFilter = params.get('f') ?? 'top';
+						if (orderFilter === 'top') filters.push('Top tweets');
+						if (orderFilter === 'live') filters.push('Latest tweets');
+						if (orderFilter === 'user') filters.push('People');
+						if (orderFilter === 'image') filters.push('Tweets with photos');
+						if (orderFilter === 'video') filters.push('Tweets with videos');
 
+						const queryFilter = params.get('q');
+						// if (queryFilter.includes('"')) filters.push('Exact phrase');
+						// if (queryFilter.includes('-')) filters.push('None of these words');
+						// if (queryFilter.includes('(') && queryFilter.includes(')') && queryFilter.includes('OR'))
+						// 	filters.push('Any of these words');
+						// if (queryFilter.includes('#')) filters.push('These hashtags');
+						if (queryFilter.includes('-filter:replies')) filters.push('No replies');
+						if (queryFilter.includes('filter:replies')) filters.push('Only replies');
+						if (queryFilter.includes('-filter:links')) filters.push('No links');
+						if (queryFilter.includes('filter:links')) filters.push('Only links');
+						if (queryFilter.includes('until:')) {
+							const regex = /until:(\d{4}-\d{2}-\d{2})/;
+							const match = queryFilter.match(regex);
+							const date = match && match[1];
+							filters.push('Until: ' + date);
+						}
+						if (queryFilter.includes('since:')) {
+							const regex = /since:(\d{4}-\d{2}-\d{2})/;
+							const match = queryFilter.match(regex);
+							const date = match && match[1];
+							filters.push('Since: ' + date);
+						}
 						break;
+
 				}
 
 
@@ -541,7 +570,7 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 
 				const someData = JSON.stringify(outputData);
 
-				sendResponse({ data: someData, title: `${queryText}-${name}` });
+				sendResponse({ data: someData, title: `${queryText}_${name}` });
 
 			}
 		}
