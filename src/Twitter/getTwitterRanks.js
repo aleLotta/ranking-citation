@@ -9,137 +9,146 @@ const start = 1;
 const currPage = 1;
 let nPages;
 
+
 chrome.storage.sync.get('nPages', (items) => {
     nPages = items.nPages;
 
-    console.log('currentPage ' + currPage);
+    try {
+        console.log('currentPage ' + currPage);
 
-    const results = document.querySelectorAll('.css-1dbjc4n.r-j5o65s.r-qklmqi.r-1adg3ll.r-1ny4l3l:not(:has(.css-1dbjc4n.r-1awozwy.r-18u37iz > svg))');
+        const results = document.querySelectorAll('.css-1dbjc4n.r-j5o65s.r-qklmqi.r-1adg3ll.r-1ny4l3l:not(:has(.css-1dbjc4n.r-1awozwy.r-18u37iz > svg))');
 
-    let newData = [];
-    let BNODE_INDEX = parseInt(start);
-    console.log('bnode' + BNODE_INDEX);
-    let RANK_INDEX = parseInt(start);
-    const vocab = "https://rankingcitation.dei.unipd.it";
-    const ontology = vocab + "/ontology/";
-    const resource = vocab + "/resource/";
+        let newData = [];
+        let BNODE_INDEX = parseInt(start);
+        console.log('bnode' + BNODE_INDEX);
+        let RANK_INDEX = parseInt(start);
+        const vocab = "https://rankingcitation.dei.unipd.it";
+        const ontology = vocab + "/ontology/";
+        const resource = vocab + "/resource/";
 
-    results.forEach((result) => {
+        results.forEach((result) => {
 
-        const title = result.querySelector('div[data-testid="tweetText"]').innerText.replaceAll('\n', ' ');
-        const resultURL = result.querySelector('.css-1dbjc4n.r-18u37iz.r-1q142lx > a') ? result.querySelector('.css-1dbjc4n.r-18u37iz.r-1q142lx > a').href :
-            result.querySelector('.css-1dbjc4n.r-18u37iz.r-1h0z5md > a').href.replace('/analytics', '');
-
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const options = {
-                hour: 'numeric',
-                minute: 'numeric',
-                hour12: true,
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            };
-            return date.toLocaleString('en-US', options);
-        }
-
-        const inputDate = result.querySelector('time').dateTime;
-        const formattedDate = formatDate(inputDate);
-
-        const publicationTime = formattedDate;
-
-        /**  Find a method to add the authors */
-        //const authorsList = result.querySelectorAll('.ddmAuthorList>a');
-        let authors = [];
-        authors.push(result.querySelectorAll('a[role="link"]')[2].textContent);
-        //for (let item of authorsList) {
-        //    authors.push(item.innerText);
-        //}
-
-        newData.push({
-            //"@id": vocab + "result" + RESULT_INDEX,
-            "@id": resultURL,
-            "rdfs:label": [{
-                "@value": "rank" + RANK_INDEX,
-            }],
-            "@type": "rco:SearchResult",
-            "schema:title": title,
-            "schema:url": resultURL,
-            "rco:authors": authors,
-            "rco:publicationTime": publicationTime,
-            "rco:currentPage": currPage,
-        });
-
-        RANK_INDEX++;
-
-        //const bnodeString = vocab + "_bnode" + BNODE_INDEX;
-        const bnodeString = "_:bnode" + BNODE_INDEX;
+            const title = result.querySelector('div[data-testid="tweetText"]').innerText.replaceAll('\n', ' ');
+            const resultURL = result.querySelector('.css-1dbjc4n.r-18u37iz.r-1q142lx > a') ? result.querySelector('.css-1dbjc4n.r-18u37iz.r-1q142lx > a').href :
+                result.querySelector('.css-1dbjc4n.r-18u37iz.r-1h0z5md > a').href.replace('/analytics', '');
 
 
-        // Try with results.indexof(result) == results.length-1
-        if (BNODE_INDEX === (results.length) * 1) {
-            const PREV_BNODE_INDEX = BNODE_INDEX - 1;
-            //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-            const prev_node = "_:bnode" + PREV_BNODE_INDEX;
-            newData.push({
-                "@id": prev_node,
-                "rdf:first": { "@id": resultURL },
-                "rdf:rest": { "@id": "rdf:nil" }
-            });
-            return;
-        }
-
-        newData.push({
-            "@id": bnodeString,
-            "@type": "rdf:List"
-        });
-
-        if (BNODE_INDEX === 1) {
-            /*newData.push({
-                "@id": resource + resultListId,
-                "rdf:first": { "@id": resultURL },
-                "rdf:rest": { "@id": bnodeString }
-            });*/
-        }
-        else {
-            const PREV_BNODE_INDEX = BNODE_INDEX - 1;
-            //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-            const prev_node = "_:bnode" + PREV_BNODE_INDEX;
-            newData.push({
-                "@id": prev_node,
-                "rdf:first": { "@id": resultURL },
-                "rdf:rest": { "@id": bnodeString }
-            });
-        }
-        BNODE_INDEX++;
-    });
-
-    console.log(newData);
-
-    /*if (currPage == nPages) {
-        chrome.runtime.sendMessage({
-            message: 'LAST PAGE',
-            payload: {
-                newData: newData,
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                const options = {
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                };
+                return date.toLocaleString('en-US', options);
             }
-        })
-    } else if (currPage < nPages) {
+
+            const inputDate = result.querySelector('time').dateTime;
+            const formattedDate = formatDate(inputDate);
+
+            const publicationTime = formattedDate;
+
+            /**  Find a method to add the authors */
+            //const authorsList = result.querySelectorAll('.ddmAuthorList>a');
+            let authors = [];
+            authors.push(result.querySelectorAll('a[role="link"]')[2].textContent);
+            //for (let item of authorsList) {
+            //    authors.push(item.innerText);
+            //}
+
+            newData.push({
+                //"@id": vocab + "result" + RESULT_INDEX,
+                "@id": resultURL,
+                "rdfs:label": [{
+                    "@value": "rank" + RANK_INDEX,
+                }],
+                "@type": "rco:SearchResult",
+                "schema:title": title,
+                "schema:url": resultURL,
+                "rco:authors": authors,
+                "rco:publicationTime": publicationTime,
+                "rco:currentPage": currPage,
+            });
+
+            RANK_INDEX++;
+
+            //const bnodeString = vocab + "_bnode" + BNODE_INDEX;
+            const bnodeString = "_:bnode" + BNODE_INDEX;
+
+
+            // Try with results.indexof(result) == results.length-1
+            if (BNODE_INDEX === (results.length) * 1) {
+                const PREV_BNODE_INDEX = BNODE_INDEX - 1;
+                //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
+                const prev_node = "_:bnode" + PREV_BNODE_INDEX;
+                newData.push({
+                    "@id": prev_node,
+                    "rdf:first": { "@id": resultURL },
+                    "rdf:rest": { "@id": "rdf:nil" }
+                });
+                return;
+            }
+
+            newData.push({
+                "@id": bnodeString,
+                "@type": "rdf:List"
+            });
+
+            if (BNODE_INDEX === 1) {
+                /*newData.push({
+                    "@id": resource + resultListId,
+                    "rdf:first": { "@id": resultURL },
+                    "rdf:rest": { "@id": bnodeString }
+                });*/
+            }
+            else {
+                const PREV_BNODE_INDEX = BNODE_INDEX - 1;
+                //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
+                const prev_node = "_:bnode" + PREV_BNODE_INDEX;
+                newData.push({
+                    "@id": prev_node,
+                    "rdf:first": { "@id": resultURL },
+                    "rdf:rest": { "@id": bnodeString }
+                });
+            }
+            BNODE_INDEX++;
+        });
+
+        console.log(newData);
+
+        /*if (currPage == nPages) {
+            chrome.runtime.sendMessage({
+                message: 'LAST PAGE',
+                payload: {
+                    newData: newData,
+                }
+            })
+        } else if (currPage < nPages) {
+            chrome.runtime.sendMessage({
+                message: 'NEW DATA',
+                payload: {
+                    newData: newData,
+                }
+            })
+        }*/
         chrome.runtime.sendMessage({
             message: 'NEW DATA',
             payload: {
                 newData: newData,
+                nPages: 1,
+                source: 'Twitter'
             }
+        });
+    } catch (error) {
+        console.error(error);
+        chrome.runtime.sendMessage({
+            source: 'getRanks',
+            error: error,
         })
-    }*/
-    chrome.runtime.sendMessage({
-        message: 'NEW DATA',
-        payload: {
-            newData: newData,
-            nPages: 1,
-            source: 'Twitter'
-        }
-    });
+    }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

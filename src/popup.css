@@ -50,7 +50,7 @@
   margin: 10px;
 }
 
-#captureBtn {
+.captureBtn {
   margin: 10px auto;
   background: none;
   border: solid 2px blue;
@@ -63,7 +63,50 @@
   text-align: center;
 }
 
-#captureBtn:hover {
+.errorCaptureBtn {
+  margin: 10px auto;
+  background: none;
+  border: solid 2px red;
+  border-radius: 5px;
+  padding: 5px;
+  color: red;
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  text-align: center;
+}
+
+.executionCaptureBtn {
+  margin: 10px auto;
+  background: none;
+  border: solid 2px orange;
+  border-radius: 5px;
+  padding: 5px;
+  color: orange;
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  text-align: center;
+}
+
+.successCaptureBtn {
+  margin: 10px auto;
+  background: none;
+  border: solid 2px blue;
+  border-radius: 5px;
+  padding: 5px;
+  color: blue;
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  text-align: center;
+}
+
+/* #captureBtn:hover {
+  background-color: blue;
+  color: #fff;
+} */
+.captureBtn:hover {
   background-color: blue;
   color: #fff;
 }

@@ -7,141 +7,150 @@ const start = params.get('start');
 const currPage = (start / 10) + 1;
 let nPages;
 
+
 chrome.storage.sync.get(['nPages'], (items) => {
     nPages = items.nPages;
 
-    console.log('currentPage ' + currPage);
+    try {
+        console.log('currentPage ' + currPage);
 
-    let results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub,'+
-        '.uVMCKf, .g.dFd2Tb.PhX2wd))');
-    if (results.length == 0) results = document.querySelectorAll('.TzHB6b.cLjAic.K7khPe')
+        let results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub,' +
+            '.uVMCKf, .g.dFd2Tb.PhX2wd))');
+        if (results.length == 0) results = document.querySelectorAll('.TzHB6b.cLjAic.K7khPe')
 
-    let newData = [];
-    //let BNODE_INDEX = (10 * (currPage - 1)) + 1;
-    //let BNODE_INDEX = items.bNodeIndex;
-    let BNODE_INDEX = 1;
-    console.log('bnode' + BNODE_INDEX);
-    //let RANK_INDEX = (10 * (currPage - 1)) + 1;
-    //let RANK_INDEX = items.bNodeIndex;
-    let RANK_INDEX = 1;
-    const vocab = "https://rankingcitation.dei.unipd.it";
-    const ontology = vocab + "/ontology/";
-    const resource = vocab + "/resource/";
+        let newData = [];
+        //let BNODE_INDEX = (10 * (currPage - 1)) + 1;
+        //let BNODE_INDEX = items.bNodeIndex;
+        let BNODE_INDEX = 1;
+        console.log('bnode' + BNODE_INDEX);
+        //let RANK_INDEX = (10 * (currPage - 1)) + 1;
+        //let RANK_INDEX = items.bNodeIndex;
+        let RANK_INDEX = 1;
+        const vocab = "https://rankingcitation.dei.unipd.it";
+        const ontology = vocab + "/ontology/";
+        const resource = vocab + "/resource/";
 
-    results.forEach((result) => {
+        results.forEach((result) => {
 
-        const title = result.querySelector('.yuRUbf>a>h3').innerText;
-        const resultURL = result.querySelector('.yuRUbf>a').href;
-        const publicationYear = result.querySelector('.MUxGbd.wuQ4Ob.WZ8Tjf') ?
-            result.querySelector('.MUxGbd.wuQ4Ob.WZ8Tjf').innerText.split(' ')[2] : '0';
-        const authors = result.querySelector('.VuuXrf').innerText;
+            const title = result.querySelector('.yuRUbf>a>h3').innerText;
+            const resultURL = result.querySelector('.yuRUbf>a').href;
+            const publicationYear = result.querySelector('.MUxGbd.wuQ4Ob.WZ8Tjf') ?
+                result.querySelector('.MUxGbd.wuQ4Ob.WZ8Tjf').innerText.split(' ')[2] : '0';
+            const authors = result.querySelector('.VuuXrf').innerText;
 
-        newData.push({
-            //"@id": vocab + "result" + RESULT_INDEX,
-            "@id": resultURL,
-            "rdfs:label": [{
-                "@value": "rank" + RANK_INDEX,
-            }],
-            "@type": "rco:SearchResult",
-            "schema:title": title,
-            "schema:url": resultURL,
-            "rco:authors": authors,
-            "rco:publicationYear": publicationYear,
-            "rco:currentPage": currPage,
-        });
+            newData.push({
+                //"@id": vocab + "result" + RESULT_INDEX,
+                "@id": resultURL,
+                "rdfs:label": [{
+                    "@value": "rank" + RANK_INDEX,
+                }],
+                "@type": "rco:SearchResult",
+                "schema:title": title,
+                "schema:url": resultURL,
+                "rco:authors": authors,
+                "rco:publicationYear": publicationYear,
+                "rco:currentPage": currPage,
+            });
 
-        RANK_INDEX++;
+            RANK_INDEX++;
 
-        //const bnodeString = vocab + "_bnode" + BNODE_INDEX;
-        const bnodeString = "_:bnode" + BNODE_INDEX;
+            //const bnodeString = vocab + "_bnode" + BNODE_INDEX;
+            const bnodeString = "_:bnode" + BNODE_INDEX;
 
 
-        // Try with results.indexof(result) == results.length-1
-        //if (BNODE_INDEX === (results.length) * nPages) {
-        if (Array.from(results).indexOf(result) === results.length - 1) {
-            if (currPage != nPages) {
-                const PREV_BNODE_INDEX = BNODE_INDEX - 1;
-                const prev_node = "_:bnode" + PREV_BNODE_INDEX;
-                newData.push({
-                    "@id": prev_node,
-                    "rdf:first": { "@id": resultURL },
-                    "rdf:rest": { "@id": `_:resultList${currPage + 1}` }
-                })
+            // Try with results.indexof(result) == results.length-1
+            //if (BNODE_INDEX === (results.length) * nPages) {
+            if (Array.from(results).indexOf(result) === results.length - 1) {
+                if (currPage != nPages) {
+                    const PREV_BNODE_INDEX = BNODE_INDEX - 1;
+                    const prev_node = "_:bnode" + PREV_BNODE_INDEX;
+                    newData.push({
+                        "@id": prev_node,
+                        "rdf:first": { "@id": resultURL },
+                        "rdf:rest": { "@id": `_:resultList${currPage + 1}` }
+                    })
+                } else {
+                    const PREV_BNODE_INDEX = BNODE_INDEX - 1;
+                    const prev_node = "_:bnode" + PREV_BNODE_INDEX;
+                    newData.push({
+                        "@id": prev_node,
+                        "rdf:first": { "@id": resultURL },
+                        "rdf:rest": { "@id": "rdf:nil" }
+                    });
+                }
+
+                return;
+            }
+
+            newData.push({
+                "@id": bnodeString,
+                "@type": "rdf:List"
+            });
+
+            if (BNODE_INDEX === 1) {
+                if (currPage != 1) {
+                    newData.push(
+                        {
+                            '@id': `_:resultList${currPage}`,
+                            '@type': 'rdf:List'
+                        },
+                        {
+                            '@id': `_:resultList${currPage}`,
+                            'rdf:first': { '@id': resultURL },
+                            'rdf:rest': { '@id': bnodeString }
+                        }
+                    );
+                }
             } else {
                 const PREV_BNODE_INDEX = BNODE_INDEX - 1;
+                //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
                 const prev_node = "_:bnode" + PREV_BNODE_INDEX;
                 newData.push({
                     "@id": prev_node,
                     "rdf:first": { "@id": resultURL },
-                    "rdf:rest": { "@id": "rdf:nil" }
+                    "rdf:rest": { "@id": bnodeString }
                 });
             }
-
-            return;
-        }
-
-        newData.push({
-            "@id": bnodeString,
-            "@type": "rdf:List"
+            BNODE_INDEX++;
         });
 
-        if (BNODE_INDEX === 1) {
-            if (currPage != 1) {
-                newData.push(
-                    {
-                        '@id': `_:resultList${currPage}`,
-                        '@type': 'rdf:List'
-                    },
-                    {
-                        '@id': `_:resultList${currPage}`,
-                        'rdf:first': { '@id': resultURL },
-                        'rdf:rest': { '@id': bnodeString }
-                    }
-                );
-            }
-        } else {
-            const PREV_BNODE_INDEX = BNODE_INDEX - 1;
-            //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-            const prev_node = "_:bnode" + PREV_BNODE_INDEX;
-            newData.push({
-                "@id": prev_node,
-                "rdf:first": { "@id": resultURL },
-                "rdf:rest": { "@id": bnodeString }
-            });
-        }
-        BNODE_INDEX++;
-    });
+        console.log('newData');
+        console.log(newData);
 
-    console.log('newData');
-    console.log(newData);
-
-    /*if (currPage == nPages) {
+        /*if (currPage == nPages) {
+            chrome.runtime.sendMessage({
+                message: 'LAST PAGE',
+                payload: {
+                    newData: newData,
+                }
+            })
+        } else if (currPage < nPages) {
+            chrome.runtime.sendMessage({
+                message: 'NEW DATA',
+                payload: {
+                    newData: newData,
+                }
+            })
+        }*/
+        chrome.storage.sync.set({
+            bNodeIndex: RANK_INDEX
+        }).then(
+            chrome.runtime.sendMessage({
+                message: 'NEW DATA',
+                payload: {
+                    newData: newData,
+                    nPages: nPages,
+                    source: 'Google Search'
+                }
+            })
+        );
+    } catch (error) {
+        console.error(error);
         chrome.runtime.sendMessage({
-            message: 'LAST PAGE',
-            payload: {
-                newData: newData,
-            }
+            source: 'getRanks',
+            error: error,
         })
-    } else if (currPage < nPages) {
-        chrome.runtime.sendMessage({
-            message: 'NEW DATA',
-            payload: {
-                newData: newData,
-            }
-        })
-    }*/
-    chrome.storage.sync.set({
-        bNodeIndex: RANK_INDEX
-    }).then(
-        chrome.runtime.sendMessage({
-            message: 'NEW DATA',
-            payload: {
-                newData: newData,
-                nPages: nPages,
-                source: 'Google Search'
-            }
-        })
-    );
+    }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

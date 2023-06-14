@@ -7,116 +7,125 @@ const start = params.get('offset');
 const currPage = ((start - 1) / 20) + 1;
 let nPages;
 
+
 chrome.storage.sync.get('nPages', (items) => {
     nPages = items.nPages;
 
-    console.log('currentPage ' + currPage);
+    try {
+        console.log('currentPage ' + currPage);
 
-    const results = document.querySelectorAll('.searchArea');
+        const results = document.querySelectorAll('.searchArea');
 
-    let newData = [];
-    let BNODE_INDEX = (20 * (currPage - 1)) + 1;
-    console.log('bnode' + BNODE_INDEX);
-    let RANK_INDEX = (20 * (currPage - 1)) + 1;
-    const vocab = "https://rankingcitation.dei.unipd.it";
-    const ontology = vocab + "/ontology/";
-    const resource = vocab + "/resource/";
+        let newData = [];
+        let BNODE_INDEX = (20 * (currPage - 1)) + 1;
+        console.log('bnode' + BNODE_INDEX);
+        let RANK_INDEX = (20 * (currPage - 1)) + 1;
+        const vocab = "https://rankingcitation.dei.unipd.it";
+        const ontology = vocab + "/ontology/";
+        const resource = vocab + "/resource/";
 
-    results.forEach((result) => {
+        results.forEach((result) => {
 
-        const title = result.querySelector('.ddmDocTitle').innerText;
-        const resultURL = result.querySelector('.ddmDocTitle').href;
-        const publicationYear = result.querySelector('.ddmPubYr').innerText;
+            const title = result.querySelector('.ddmDocTitle').innerText;
+            const resultURL = result.querySelector('.ddmDocTitle').href;
+            const publicationYear = result.querySelector('.ddmPubYr').innerText;
 
-        const authorsList = result.querySelectorAll('.ddmAuthorList>a');
-        let authors = [];
-        for (let item of authorsList) {
-            authors.push(item.innerText);
-        }
-
-        newData.push({
-            //"@id": vocab + "result" + RESULT_INDEX,
-            "@id": resultURL,
-            "rdfs:label": [{
-                "@value": "rank" + RANK_INDEX,
-            }],
-            "@type": "rco:SearchResult",
-            "schema:title": title,
-            "schema:url": resultURL,
-            "rco:authors": authors,
-            "rco:publicationYear": publicationYear,
-            "rco:currentPage": currPage,
-        });
-
-        RANK_INDEX++;
-
-        //const bnodeString = vocab + "_bnode" + BNODE_INDEX;
-        const bnodeString = "_:bnode" + BNODE_INDEX;
-
-
-        // Try with results.indexof(result) == results.length-1
-        if (BNODE_INDEX === (results.length) * nPages) {
-            const PREV_BNODE_INDEX = BNODE_INDEX - 1;
-            //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-            const prev_node = "_:bnode" + PREV_BNODE_INDEX;
-            newData.push({
-                "@id": prev_node,
-                "rdf:first": { "@id": resultURL },
-                "rdf:rest": { "@id": "rdf:nil" }
-            });
-            return;
-        }
-
-        newData.push({
-            "@id": bnodeString,
-            "@type": "rdf:List"
-        });
-
-        if (BNODE_INDEX === 1) {
-            /*newData.push({
-                "@id": resource + resultListId,
-                "rdf:first": { "@id": resultURL },
-                "rdf:rest": { "@id": bnodeString }
-            });*/
-        }
-        else {
-            const PREV_BNODE_INDEX = BNODE_INDEX - 1;
-            //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
-            const prev_node = "_:bnode" + PREV_BNODE_INDEX;
-            newData.push({
-                "@id": prev_node,
-                "rdf:first": { "@id": resultURL },
-                "rdf:rest": { "@id": bnodeString }
-            });
-        }
-        BNODE_INDEX++;
-    });
-
-    console.log(newData);
-
-    /*if (currPage == nPages) {
-        chrome.runtime.sendMessage({
-            message: 'LAST PAGE',
-            payload: {
-                newData: newData,
+            const authorsList = result.querySelectorAll('.ddmAuthorList>a');
+            let authors = [];
+            for (let item of authorsList) {
+                authors.push(item.innerText);
             }
-        })
-    } else if (currPage < nPages) {
+
+            newData.push({
+                //"@id": vocab + "result" + RESULT_INDEX,
+                "@id": resultURL,
+                "rdfs:label": [{
+                    "@value": "rank" + RANK_INDEX,
+                }],
+                "@type": "rco:SearchResult",
+                "schema:title": title,
+                "schema:url": resultURL,
+                "rco:authors": authors,
+                "rco:publicationYear": publicationYear,
+                "rco:currentPage": currPage,
+            });
+
+            RANK_INDEX++;
+
+            //const bnodeString = vocab + "_bnode" + BNODE_INDEX;
+            const bnodeString = "_:bnode" + BNODE_INDEX;
+
+
+            // Try with results.indexof(result) == results.length-1
+            if (BNODE_INDEX === (results.length) * nPages) {
+                const PREV_BNODE_INDEX = BNODE_INDEX - 1;
+                //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
+                const prev_node = "_:bnode" + PREV_BNODE_INDEX;
+                newData.push({
+                    "@id": prev_node,
+                    "rdf:first": { "@id": resultURL },
+                    "rdf:rest": { "@id": "rdf:nil" }
+                });
+                return;
+            }
+
+            newData.push({
+                "@id": bnodeString,
+                "@type": "rdf:List"
+            });
+
+            if (BNODE_INDEX === 1) {
+                /*newData.push({
+                    "@id": resource + resultListId,
+                    "rdf:first": { "@id": resultURL },
+                    "rdf:rest": { "@id": bnodeString }
+                });*/
+            }
+            else {
+                const PREV_BNODE_INDEX = BNODE_INDEX - 1;
+                //const prev_node = vocab + "_bnode" + PREV_BNODE_INDEX;
+                const prev_node = "_:bnode" + PREV_BNODE_INDEX;
+                newData.push({
+                    "@id": prev_node,
+                    "rdf:first": { "@id": resultURL },
+                    "rdf:rest": { "@id": bnodeString }
+                });
+            }
+            BNODE_INDEX++;
+        });
+
+        console.log(newData);
+
+        /*if (currPage == nPages) {
+            chrome.runtime.sendMessage({
+                message: 'LAST PAGE',
+                payload: {
+                    newData: newData,
+                }
+            })
+        } else if (currPage < nPages) {
+            chrome.runtime.sendMessage({
+                message: 'NEW DATA',
+                payload: {
+                    newData: newData,
+                }
+            })
+        }*/
         chrome.runtime.sendMessage({
             message: 'NEW DATA',
             payload: {
                 newData: newData,
+                nPages: nPages,
+                source: 'Scopus'
             }
+        });
+    } catch (error) {
+        console.error(error);
+        chrome.runtime.sendMessage({
+            source: 'getRanks',
+            error: error,
         })
-    }*/
-    chrome.runtime.sendMessage({
-        message: 'NEW DATA',
-        payload: {
-            newData: newData,
-            nPages: nPages,
-            source: 'Scopus'
-        }
-    });
+    }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

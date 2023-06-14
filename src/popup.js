@@ -102,6 +102,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 								//console.log("Value is set to " + citation);
 
 								updateCitations(String(depositId));
+								handleCaptureBtn('success');
 							});
 
 						}
@@ -116,9 +117,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+	if (request.source === 'getRanks' && request.error !== undefined) {
+		alert('Error during capture of data in the injected scripts! \nReload the page and try again. \nIf the problem persists check the logs');
+		console.log(request.error);
+		handleCaptureBtn('error');
+	}
+	if (request.source === 'background' && request.error !== undefined) {
+		alert('Error in the background script! \nReload the page and try again. \nIf the problem persists check the logs');
+		console.log(request.error);
+		handleCaptureBtn('error');
+	}
+})
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 	if (request.message === 'ERROR') {
 		if (request.status == 401) {
-			alert('You supplied the wrong credentials. Remember to set the correct Access Token if you are either using Zenodo or Sandbox Zenodo (They dont\'t share the same account).' +
+			alert('You supplied the wrong credentials. Remember to set the correct Access Token if you are either using Zenodo or Sandbox Zenodo (They don\'t share the same account).' +
 				' The Access Token should also have deposit:actions and deposit:write access');
 		}
 		if (request.status == 400) {
@@ -147,7 +161,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 			alert('Internal Server Error. Zenodo will deal with the problem');
 		}
 
-
+		handleCaptureBtn('error');
 	}
 })
 
@@ -162,7 +176,7 @@ document.addEventListener("DOMContentLoaded", function (event) {
 			currentUrl.match("https://www.scopus.com/results*") || currentUrl.match("https://www.bing.com/search*") ||
 			currentUrl.match("https://twitter.com/search*")) {
 
-			document.getElementById('content').innerHTML += '<button id="captureBtn">Capture Snapshot</button>';
+			document.getElementById('content').innerHTML += '<button id="captureBtn" class="captureBtn">Cite this ranking!</button>';
 
 			// button for capturing the snapshot
 			document.getElementById('captureBtn').addEventListener('click', function () {
@@ -170,28 +184,37 @@ document.addEventListener("DOMContentLoaded", function (event) {
 				// Send message to content script to start capturing data
 				chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 					chrome.tabs.sendMessage(tabs[0].id, { message: "START" }, function (response) {
-						const para = document.createElement('p');
-						para.innerHTML = response.data;
 
-						let rocrateData;
-						let DOI;
-						const data = response.data;
-						const title = response.title;
+						try {
+							const para = document.createElement('p');
+							para.innerHTML = response.data;
 
-						// Send message to background.js for creating RO-Crate
-						chrome.runtime.sendMessage(
-							{
-								cmd: 'CREATE RO',
-								payload: {
-									message: data,
-									title: title
+							let rocrateData;
+							let DOI;
+							const data = response.data;
+							const title = response.title;
+
+							// Send message to background.js for creating RO-Crate
+							chrome.runtime.sendMessage(
+								{
+									cmd: 'CREATE RO',
+									payload: {
+										message: data,
+										title: title
+									},
 								},
-							},
-							//(response) => {
-							//	console.log(response.response)
-							//	rocrateData = response.payload.content;
-							//}
-						);
+								//(response) => {
+								//	console.log(response.response)
+								//	rocrateData = response.payload.content;
+								//}
+							);
+
+							handleCaptureBtn('execution');
+						} catch (error) {
+							console.log(error);
+							alert('There was an error in the content script, reload the page and try again.');
+							handleCaptureBtn('error');
+						}
 
 					});
 				});
@@ -270,6 +293,27 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
 });
 
+function handleCaptureBtn(status) {
+	let captureBtn = document.getElementById('captureBtn');
+	captureBtn.onclick = null;
+	switch (status) {
+		case 'error':
+			captureBtn.innerText = 'Error! Reload and try again';
+			captureBtn.classList = 'errorCaptureBtn';
+			break;
+
+		case 'execution':
+			captureBtn.innerText = 'Creating the citation...';
+			captureBtn.classList = 'executionCaptureBtn';
+			break;
+
+		case 'success':
+			captureBtn.innerText = 'Success! Reload the page to cite again.';
+			captureBtn.classList = 'successCaptureBtn';
+			break;
+	}
+}
+
 function updateCitations(key) {
 	chrome.storage.sync.get([key]).then((result) => {
 		if (!(keySet.has(key))) {
@@ -333,6 +377,7 @@ function updateCitations(key) {
 			document.getElementById("content").appendChild(citationDiv);
 
 			keySet.add(key);
+
 		}
 		else {
 			console.log(key);
