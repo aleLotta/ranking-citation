@@ -19,6 +19,7 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "dom-to-image": "^2.6.0",
     "html2canvas": "^1.4.1",
     "ro-crate": "^3.2.1"
   }

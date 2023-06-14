@@ -1,4 +1,5 @@
 import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image";
 
 //const url = new URL(window.location.href);
 //const params = new URLSearchParams(url.search);
@@ -158,7 +159,53 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const depositId = request.payload.depositId;
         const uploadDestination = request.payload.uploadDestination;
 
-        html2canvas(document.body).then(function (canvas) {
+        domtoimage.toBlob(document.getElementById('react-root'))
+            .then(function (blob) {
+
+                const imgFile = new File([blob], `ranking-snapshot-page${currPage}.png`, { type: 'image/png' });
+
+                const formData = new FormData();
+
+                // Upload the screenshot file to the the deposit
+                formData.append("file", imgFile);
+
+                fetch(`${uploadDestination}api/deposit/depositions/${depositId}/files`, {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${ACCESS_TOKEN}`,
+                    },
+                    body: formData,
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (String(data.status).startsWith('4') || String(data.status).startsWith('5')) {
+                            chrome.runtime.sendMessage({
+                                message: 'ERROR',
+                                status: data.status
+                            })
+
+                            console.error(data);
+                        } else {
+                            console.log("File uploaded successfully:", data);
+                            //if (currPage == nPages) {
+                            chrome.runtime.sendMessage({
+                                message: "Uploaded Screenshot",
+                                payload: {
+                                    depositId: depositId,
+                                    ACCESS_TOKEN: ACCESS_TOKEN,
+                                    nPages: 1,
+                                    uploadDestination: uploadDestination,
+                                }
+                            });
+                            //}
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error uploading file:", error);
+                    });
+            });
+
+        /*html2canvas(document.body).then(function (canvas) {
 
             canvas.toBlob(function (blob) {
 
@@ -206,7 +253,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     });
             });
 
-        })
+        })*/
     }
 })
 
