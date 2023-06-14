@@ -35,6 +35,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 		if (newDataCounter == request.payload.nPages) {
 			uploadData(data);
 		}
+
 	}
 });
 
@@ -43,7 +44,7 @@ async function getPagesRanks(nPages) {
 		chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
 			const url = new URL(tabs[0].url);
-			const params = new URLSearchParams(url.search);
+			/*const params = new URLSearchParams(url.search);
 
 			let patentsFilter, languageFilter, sinceYearFilter,
 				untilYearFilter, sortByFilter, resultTypeFilter;
@@ -67,21 +68,58 @@ async function getPagesRanks(nPages) {
 
 			chrome.storage.sync.set({
 				bNodeIndex: 1,
-			})
+			})*/
 
-			for (let i = 0; i < nPages; i++) {
+			if (url.origin === "https://twitter.com") {
 
-				let pageURL;
-				if (url.origin.includes('google')) {
-					const startURL = 10 * i;
-					if (url.origin.includes('scholar')) {
-						pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=${queryFilter}&hl=${languageFilter}&as_sdt=${patentsFilter}&as_vis=1&` +
-							`as_ylo=${sinceYearFilter}&as_yhi${untilYearFilter}&scisbd=${sortByFilter}&as_rr=${resultTypeFilter}`;
-					} else {
-						pageURL = `${url}&start=${startURL}`;
+				let scriptName = 'Twitter/getTwitterRanks.js';
+				chrome.scripting.executeScript({
+					target: {
+						tabId: tabs[0].id
+					},
+					files: [scriptName]
+				});
+
+			} else {
+				for (let i = 0; i < nPages; i++) {
+
+					let pageURL, startURL, scriptName;
+					switch (url.origin) {
+						case "https://scholar.google.com":
+							startURL = 10 * i;
+							scriptName = 'Scholar/getScholarRanks.js';
+							//pageURL = `https://scholar.google.com/scholar?start=${startURL}&q=${queryFilter}&hl=${languageFilter}&as_sdt=${patentsFilter}&as_vis=1&` +
+							//	`as_ylo=${sinceYearFilter}&as_yhi${untilYearFilter}&scisbd=${sortByFilter}&as_rr=${resultTypeFilter}`;
+							pageURL = url;
+							pageURL.searchParams.set('start', String(startURL))
+							break;
+
+						case "https://www.google.com":
+							startURL = 10 * i;
+							scriptName = 'Google/getGoogleRanks.js';
+							//pageURL = `${url}&start=${startURL}`;
+							pageURL = url;
+							pageURL.searchParams.set('start', String(startURL))
+							break;
+
+						case "https://www.scopus.com":
+							startURL = (20 * i) + 1;
+							scriptName = 'Scopus/getScopusRanks.js';
+							pageURL = url;
+							pageURL.searchParams.set('offset', String(startURL));
+							pageURL.searchParams.set('origin', 'resultlist');
+							break;
+
+						case "https://www.bing.com":
+							startURL = (10 * i) + 1;
+							scriptName = 'Bing/getBingRanks.js'
+							pageURL = url;
+							pageURL.searchParams.set('first', String(startURL));
+							break;
+
 					}
 
-					chrome.tabs.create({ url: pageURL, active: false }, createdTab => {
+					chrome.tabs.create({ url: String(pageURL), active: false }, createdTab => {
 						chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
 							if (tabId === createdTab.id && info.url) {
 								chrome.tabs.onUpdated.removeListener(_);
@@ -90,55 +128,15 @@ async function getPagesRanks(nPages) {
 									target: {
 										tabId: tabId
 									},
-									files: url.origin.includes('scholar') ? ['Scholar/getScholarRanks.js'] : ['Google/getGoogleRanks.js']
+									files: [scriptName]
 								});
 							}
 						});
 					});
-				} else {
-					if (url.origin.includes('bing')) {
-						const startURL = (10 * i) + 1;
-						pageURL = url;
-						pageURL.searchParams.set('first', String(startURL));
 
-						chrome.tabs.create({ url: String(pageURL), active: false }, createdTab => {
-							chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
-								if (tabId === createdTab.id && info.url) {
-									chrome.tabs.onUpdated.removeListener(_);
-
-									chrome.scripting.executeScript({
-										target: {
-											tabId: tabId
-										},
-										files: ['Bing/getBingRanks.js']
-									});
-								}
-							});
-						});
-
-					} else {
-						const startURL = (20 * i) + 1;
-						pageURL = url;
-						pageURL.searchParams.set('offset', String(startURL));
-						pageURL.searchParams.set('origin', 'resultlist');
-
-						chrome.tabs.create({ url: String(pageURL), active: false }, createdTab => {
-							chrome.tabs.onUpdated.addListener(function _(tabId, info, tab) {
-								if (tabId === createdTab.id && info.url) {
-									chrome.tabs.onUpdated.removeListener(_);
-
-									chrome.scripting.executeScript({
-										target: {
-											tabId: tabId
-										},
-										files: ['Scopus/getScopusRanks.js']
-									});
-								}
-							});
-						});
-					}
 				}
 			}
+
 		});
 
 	}
@@ -280,7 +278,6 @@ function uploadData(data) {
 						name: author.split(',')[0],
 						affiliation: author.split(',')[2],
 						orcid: author.split(',')[1]
-						//orcid: "https://orcid.org/0000-0002-1825-0097"
 					}
 				);
 			}
@@ -380,12 +377,12 @@ function uploadData(data) {
 						.catch((error) => {
 							console.error("Error uploading file:", error);
 						});
-
 					// Capture screenshot for the additional pages
-					for (let page = nPages; page > 0; page--) {
-						chrome.tabs.query({ currentWindow: true }, function (tabs) {
-							chrome.tabs.sendMessage(tabs[tabs.length - page].id, {
-								message: `ADD SCREENSHOT${nPages - page + 1}`,
+					console.log(searchSystem);
+					if (searchSystem === 'Twitter') {
+						chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+							chrome.tabs.sendMessage(tabs[0].id, {
+								message: `ADD SCREENSHOT1`,
 								payload: {
 									token: ACCESS_TOKEN,
 									depositId: depositId,
@@ -393,8 +390,20 @@ function uploadData(data) {
 								}
 							});
 						});
+					} else {
+						for (let page = nPages; page > 0; page--) {
+							chrome.tabs.query({ currentWindow: true }, function (tabs) {
+								chrome.tabs.sendMessage(tabs[tabs.length - page].id, {
+									message: `ADD SCREENSHOT${nPages - page + 1}`,
+									payload: {
+										token: ACCESS_TOKEN,
+										depositId: depositId,
+										uploadDestination: uploadDestination,
+									}
+								});
+							});
+						}
 					}
-
 
 					/*// Tell contentScript to take a screenshot and upload on Zenodo
 					// Warning: do not open the inspection tool when running

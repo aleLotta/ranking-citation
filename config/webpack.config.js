@@ -15,7 +15,8 @@ const config = (env, argv) =>
       "Scholar/getScholarRanks": PATHS.src + '/Scholar/getScholarRanks.js',
       "Google/getGoogleRanks": PATHS.src + '/Google/getGoogleRanks.js',
       "Scopus/getScopusRanks": PATHS.src + '/Scopus/getScopusRanks.js',
-      "Bing/getBingRanks": PATHS.src + '/Bing/getBingRanks.js'
+      "Bing/getBingRanks": PATHS.src + '/Bing/getBingRanks.js',
+      "Twitter/getTwitterRanks": PATHS.src + '/Twitter/getTwitterRanks.js'
     },
     devtool: argv.mode === 'production' ? false : 'source-map',
   });

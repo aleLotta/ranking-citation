@@ -124,6 +124,10 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 						"@type": "owl:DatatypeProperty"
 					},
 					{
+						"@id": "rco:publicationTime",
+						"@type": "owl:DatatypeProperty"
+					},
+					{
 						"@id": "rco:description",
 						"@type": "owl:DatatypeProperty"
 					},
@@ -194,7 +198,11 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 				} else {
 					if (pageTitle.includes('Scopus')) name = 'Scopus';
 					else {
-						name = 'Bing';
+						if (baseURL.includes('twitter')) name = 'Twitter';
+						else {
+							name = 'Bing';
+						}
+
 					}
 				}
 
@@ -205,11 +213,11 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 				const params = new URLSearchParams(url.search);
 				const queryText = params.get('q') ?? params.get('st1');
 				let language = params.get('hl') ?? navigator.language.split('-')[0];
-				if (name === 'Scopus') language = 'en';
+				if (name === 'Scopus' || name === 'Twitter') language = 'en';
 
 				const filters = [];
-				if (name.includes('Google')) {
-					if (name.includes('Scholar')) {
+				switch (name) {
+					case 'Google Scholar':
 						const patentsFilter = params.get('as_sdt') ?? '0.5';
 						const sinceYearFilter = params.get('as_ylo') ?? null;
 						const untilYearFilter = params.get('as_yhi') ?? null;
@@ -234,8 +242,9 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 						if (resultTypeFilter === '0') {
 							filters.push('Any type');
 						} else { filters.push('Review articles'); }
-					} else {
-						// FILTERS FOR GOOGLE SEARCH
+						break;
+
+					case 'Google Search':
 						const fromFilter = params.get('tbs') ?? '';
 						switch (fromFilter) {
 							case '':
@@ -261,14 +270,12 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 								const untilFilter = fromFilter.split(',')[1].replace('cd_max:', '');
 								if (sinceFilter != '') filters.push('Since ' + sinceFilter);
 								if (untilFilter != '') filters.push('Until ' + untilFilter);
-
+								break;
 						}
+						break;
 
-					}
-				} else {
-					if (name === 'Scopus') {
-						// FILTERS FOR SCOPUS COULD STILL BE EXPANDED
 
+					case 'Scopus':
 						const refinefilter = params.get('cluster') ?? '';
 
 						if (refinefilter.includes('all')) {
@@ -315,24 +322,26 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 								filters.push(`Exclude Publication Year ${splitArr[yearIndex]}`)
 							} else filters.push(`Publication Year ${splitArr[yearIndex]}`)
 						}
+						break;
 
-					} else {
-						// FILTERS FOR BING
-						const fromFilter = params.get('filters') ?? '';
-						if (fromFilter === '') filters.push('Any Time');
-						if (fromFilter.includes('ez1')) filters.push('Past 24 hours');
-						if (fromFilter.includes('ez2')) filters.push('Past Week');
-						if (fromFilter.includes('ez3')) filters.push('Past Month');
-						if (fromFilter.includes('ez5')) {
+					case 'Bing':
+						const fromFilterBing = params.get('filters') ?? '';
+						if (fromFilterBing === '') filters.push('Any Time');
+						if (fromFilterBing.includes('ez1')) filters.push('Past 24 hours');
+						if (fromFilterBing.includes('ez2')) filters.push('Past Week');
+						if (fromFilterBing.includes('ez3')) filters.push('Past Month');
+						if (fromFilterBing.includes('ez5')) {
 							let interval = document.getElementsByClassName('fs_label')[0].innerText;
 							interval = interval.replaceAll(' ', '').split('-');
 							filters.push('Since ' + interval[0]);
 							filters.push('Until ' + interval[1]);
 						}
+						break;
 
-					}
+					case 'Twitter':
+
+						break;
 				}
-
 
 
 				// Data for Settings
@@ -347,8 +356,11 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 							isLogged = true;
 						}
 					} else {
-						const loginElement = document.getElementById('initials');
-						if (loginElement) isLogged = true;
+						if (name === 'Twitter') isLogged = true;
+						else {
+							const loginElement = document.getElementById('initials');
+							if (loginElement) isLogged = true;
+						}
 					}
 				}
 
@@ -469,28 +481,41 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 				);
 
 				let results, result, resultURL;
-				if (name.includes('Google')) {
-					if (name.includes('Scholar')) {
+
+				switch (name) {
+					case 'Google Scholar':
 						results = document.querySelectorAll('.gs_r.gs_or.gs_scl');
 						result = results[0];
 						resultURL = result.querySelector('h3>a').href;
-					} else {
-						let results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub,' +
+						break;
+
+					case 'Google Search':
+						results = document.querySelectorAll('.MjjYud:not(:has(div.cUnQKe, .Ww4FFb.vt6azd.obcontainer, .oIk2Cb, .EyBRub,' +
 							'.uVMCKf, .g.dFd2Tb.PhX2wd))')
 						if (results.length == 0) results = document.querySelectorAll('.TzHB6b.cLjAic.K7khPe')
 						result = results[0];
 						resultURL = result.querySelector('.yuRUbf>a').href;
-					}
-				} else {
-					if (name === 'Scopus') {
+						break;
+
+					case 'Scopus':
 						results = document.querySelectorAll('.searchArea');
 						result = results[0];
 						resultURL = result.querySelector('.ddmDocTitle').href;
-					} else {
+						break;
+
+					case 'Bing':
 						results = document.querySelectorAll('.b_algo');
 						result = results[0];
 						resultURL = result.querySelector('h2 > a').href;
-					}
+						break;
+
+					case 'Twitter':
+						results = document.querySelectorAll('.css-1dbjc4n.r-j5o65s.r-qklmqi.r-1adg3ll.r-1ny4l3l:not(:has(.css-1dbjc4n.r-1awozwy.r-18u37iz > svg))');
+						result = results[0];
+						resultURL = result.querySelector('.css-1dbjc4n.r-18u37iz.r-1q142lx > a') ? result.querySelector('.css-1dbjc4n.r-18u37iz.r-1q142lx > a').href :
+							result.querySelector('.css-1dbjc4n.r-18u37iz.r-1h0z5md > a').href.replace('/analytics', '');
+						break;
+
 				}
 
 				const bnodeString = "_:bnode1";
@@ -515,10 +540,9 @@ chrome.storage.sync.get(['nPages', 'firstName', 'lastName', 'orcid'], function (
 				};
 
 				const someData = JSON.stringify(outputData);
-				if (name.includes('Google')) sendResponse({ data: someData, title: pageTitle });
-				else {
-					sendResponse({ data: someData, title: `${queryText}-${name}` });
-				}
+
+				sendResponse({ data: someData, title: `${queryText}-${name}` });
+
 			}
 		}
 	);
